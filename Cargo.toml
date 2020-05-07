@@ -1,0 +1,15 @@
+[package]
+name = "nginee"
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+nginee_event_loop = { version = "0.1.0", path = "crate/event_loop", optional = true }
+
+[workspace]
+members = ["crate/*"]
+
+[features]
+default = ["event_loop"]
+event_loop = ["nginee_event_loop"]
