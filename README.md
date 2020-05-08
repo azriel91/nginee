@@ -1,6 +1,6 @@
-# Nginee
+# nginee
 
-Toy `async` game engine designed to be simple, ergonomic and performant.
+Experimental `async` game engine designed to be simple, ergonomic and performant.
 
 For more information, please see the [vision] and [rationale] documents.
 
