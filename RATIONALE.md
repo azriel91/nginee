@@ -34,10 +34,11 @@ Many existing libraries provide the means to build good games; what tends to be 
 
 ### Direction
 
-Starting afresh gives us an opportunity to build a game engine that fits the asynchronous event execution model, as well as leverage technologies such as Rust's `async` and `wgpu-rs`, which were not available / usable to when the earlier game engine libraries began.
+Starting afresh gives us an opportunity to build a game engine that fits the asynchronous event execution model, as well as leverage technologies such as Rust's `async` crates and [`wgpu-rs`], which were not available or in a ready enough state compared to when the earlier game engine libraries began.
 
 Notably the [`miniquad`] family of crates by [Fedor] is something to watch, as it targets PC, mobile, and web targets, with [`macroquad`] using an `async` event loop.
 
+[`macroquad`]: https://github.com/not-fl3/macroquad
+[`miniquad`]: https://github.com/not-fl3/miniquad
+[`wgpu-rs`]: https://github.com/gfx-rs/wgpu-rs
 [Fedor]: https://github.com/not-fl3
-[macroquad]: https://github.com/not-fl3/macroquad
-[miniquad]: https://github.com/not-fl3/miniquad
