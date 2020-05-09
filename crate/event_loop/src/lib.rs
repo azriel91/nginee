@@ -8,6 +8,7 @@
     missing_docs
 )]
 
+mod event_handler;
 mod event_loop;
 
-pub use crate::event_loop::EventLoop;
+pub use crate::{event_handler::EventHandler, event_loop::EventLoop};

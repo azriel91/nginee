@@ -1,16 +1,21 @@
 #[cfg(test)]
 mod tests {
-    use nginee::event_loop::EventLoop;
+    use crossbeam::channel;
+
+    use nginee::event_loop::{EventHandler, EventLoop};
 
     #[test]
     fn run_once_runs_event_handler_once() {
-        let mut count = 0;
-        let event_handler = async {
-            count = count + 1;
-        };
+        let (tx, rx) = channel::unbounded();
+        let event_handler = EventHandler::new(async move {
+            tx.send(()).unwrap();
+        });
 
-        smol::run(EventLoop::run_once(event_handler));
+        let mut event_loop = EventLoop::new(vec![event_handler]);
 
+        smol::run(event_loop.run_once());
+
+        let count = rx.try_iter().collect::<Vec<()>>().len();
         assert_eq!(1, count);
     }
 }
