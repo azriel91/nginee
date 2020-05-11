@@ -118,3 +118,41 @@ jobs:
         with:
           command: test
           args: --workspace --tests --release
+
+  build_examples_linux:
+    name: Build examples (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: '`event_loop` example'
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --manifest-path examples/event_loop/Cargo.toml
+
+  build_examples_wasm:
+    name: Build examples (WASM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: 'Install `wasm-pack`'
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: 'latest'
+
+      - name: '`event_loop` example'
+        run: wasm-pack build --target web examples/event_loop
