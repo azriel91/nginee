@@ -4,8 +4,15 @@ version = "0.1.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 
+[lib]
+doctest = false
+test = false
+
 [dependencies]
 nginee_event_loop = { version = "0.1.0", path = "crate/event_loop", optional = true }
+
+[dev-dependencies]
+smol = "0.1.4"
 
 [workspace]
 members = ["crate/*"]
@@ -13,3 +20,6 @@ members = ["crate/*"]
 [features]
 default = ["event_loop"]
 event_loop = ["nginee_event_loop"]
+
+[patch.crates-io]
+smol = { git = "https://github.com/jjl/smol.git", branch = "feature/wasm" }
