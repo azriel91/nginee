@@ -1,0 +1,20 @@
+[package]
+name = "example_event_loop"
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+edition = "2018"
+
+[lib]
+doctest = false
+test = false
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+nginee = { path = "../.." }
+tokio = { version = "0.2.20", features = ["rt-core", "io-util"] }
+# `smol` still needs work for WASM support.
+# https://github.com/stjepang/smol/issues/87
+# smol = "0.1.4"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.62"
