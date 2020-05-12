@@ -1,0 +1,12 @@
+[package]
+name = "nginee_event_loop"
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+edition = "2018"
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+futures = { version =  "0.3.5", default-features = false }

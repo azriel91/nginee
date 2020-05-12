@@ -1,0 +1,6 @@
+[book]
+authors = ["Azriel Hoh"]
+language = "en"
+multilingual = false
+src = "src"
+title = "nginee: async game engine"
