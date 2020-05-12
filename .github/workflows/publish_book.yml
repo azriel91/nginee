@@ -37,6 +37,8 @@ jobs:
 
       - run: mdbook build doc
       - run: mdbook test doc
+      # We *do* want to include the built wasm files.
+      - run: rm -f ./doc/book/pkg/.gitignore
 
       - name: Publish to `gh-pages`
         uses: peaceiris/actions-gh-pages@v3
