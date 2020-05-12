@@ -163,5 +163,5 @@ jobs:
       - name: 'Build examples'
         run: |
           for example in $(ls examples)
-          do wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}"
+          do (cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}")
           done

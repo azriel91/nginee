@@ -26,37 +26,35 @@ cargo test --workspace --tests -- --nocapture --color always
 
 2. Open `tarpaulin-report.html` in the repository root.
 
-### Examples
+## Examples
 
-Steps to run an example:
+### Native
 
-1. Navigate to the example's directory.
+To run an example, run the following commands from the repository root:
 
-    ```bash
-    cd examples/event_loop
-    ```
+```bash
+example=event_loop
+cargo run --manifest-path "examples/${example}/Cargo.toml"
+```
 
-2. Run `cargo run` to run the example natively.
+### WASM
 
-3. Follow the following steps to run the example in the browser:
+To build an individual example, run the following commands from the repository root:
 
-    1. Build the example using `wasm-pack`:
+```bash
+example=event_loop # example name
+(cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}")
+```
 
-        ```bash
-        wasm-pack build --target web
-        ```
+To build the all examples for the WASM target, run:
 
-    2. Start a HTTP server in the example's directory:
+```bash
+for example in $(ls examples)
+do (cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}")
+done
+```
 
-        ```bash
-        # simple-http-server
-        simple-http-server -i --nocache
-
-        # python
-        python -m SimpleHTTPServer 8000
-        ```
-
-    3. Open <http://localhost:8000>, and open the developer tools console (usually F12).
+To view the example, run `mdbook serve` in the `doc` directory, and navigate to <http://localhost:3000/>.
 
 [vision]: VISION.md
 [rationale]: RATIONALE.md
