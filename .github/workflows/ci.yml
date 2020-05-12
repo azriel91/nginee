@@ -131,11 +131,17 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: '`event_loop` example'
+      - name: 'Example: `event_loop`'
         uses: actions-rs/cargo@v1
         with:
-          command: run
+          command: build
           args: --manifest-path examples/event_loop/Cargo.toml
+
+      - name: 'Example: `event_loop_console`'
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/event_loop_console/Cargo.toml
 
   build_examples_wasm:
     name: Build examples (WASM)
@@ -154,5 +160,8 @@ jobs:
         with:
           version: 'latest'
 
-      - name: '`event_loop` example'
+      - name: 'Example: `event_loop`'
         run: wasm-pack build --target web examples/event_loop
+
+      - name: 'Example: `event_loop_console`'
+        run: wasm-pack build --target web examples/event_loop_console
