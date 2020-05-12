@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(Debug)]
-pub struct Error(tokio::io::Error);
+pub struct Error;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -10,9 +10,3 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
-
-impl From<tokio::io::Error> for Error {
-    fn from(e: tokio::io::Error) -> Self {
-        Self(e)
-    }
-}

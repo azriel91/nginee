@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 nginee = { path = "../.." }
-tokio = { version = "0.2.20", features = ["rt-core", "io-util"] }
+async-std = "1.6.0-beta.1"
 # `smol` still needs work for WASM support.
 # https://github.com/stjepang/smol/issues/87
 # smol = "0.1.4"

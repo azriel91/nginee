@@ -1,5 +1,5 @@
+use async_std::task;
 use nginee::event_loop::{EventHandler, EventHandlingOutcome, EventLoop};
-use tokio::runtime::Runtime;
 
 pub use crate::error::Error;
 
@@ -35,16 +35,16 @@ pub fn countdown(mut count: u32) -> EventHandler<Error> {
     })
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+type ReturnValue = Result<(), Error>;
+
+#[cfg(target_arch = "wasm32")]
+type ReturnValue = ();
+
 /// Runs the application.
-pub fn run() -> Result<(), Error> {
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+pub fn run() -> ReturnValue {
     let event_loop = EventLoop::new(vec![countdown(10)]);
 
-    let mut rt = Runtime::new()?;
-
-    rt.block_on(event_loop.run())
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-pub fn run_ignore_errors() {
-    let _ = run();
+    task::block_on(event_loop.run())
 }
