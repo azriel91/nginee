@@ -43,14 +43,14 @@ To build an individual example, run the following commands from the repository r
 
 ```bash
 example=event_loop # example name
-(cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}")
+(cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg")
 ```
 
 To build the all examples for the WASM target, run:
 
 ```bash
 for example in $(ls examples)
-do (cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}")
+do (cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg")
 done
 ```
 

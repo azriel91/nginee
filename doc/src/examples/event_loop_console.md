@@ -3,7 +3,7 @@
 To compile this example locally, run:
 
 ```bash
-wasm-pack build --target web --out-dir ../../doc/src/pkg examples/event_loop_console
+(cd examples/event_loop_console && wasm-pack build --target web --out-dir ../../doc/src/pkg)
 ```
 
 Terminal:
