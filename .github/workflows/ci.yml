@@ -160,8 +160,8 @@ jobs:
         with:
           version: 'latest'
 
-      - name: 'Example: `event_loop`'
-        run: wasm-pack build --target web examples/event_loop
-
-      - name: 'Example: `event_loop_console`'
-        run: wasm-pack build --target web examples/event_loop_console
+      - name: 'Build examples'
+        run: |
+          for example in $(ls examples)
+          do wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}"
+          done

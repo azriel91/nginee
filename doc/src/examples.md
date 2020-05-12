@@ -8,6 +8,6 @@ You may compile all examples before visiting each page using the following comma
 
 ```bash
 for example in $(ls examples)
-do echo wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}"
+do wasm-pack build --target web --out-dir "../../doc/src/pkg examples/${example}"
 done
 ```
