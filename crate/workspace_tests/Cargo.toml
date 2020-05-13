@@ -8,3 +8,9 @@ edition = "2018"
 crossbeam = "0.7.3"
 nginee = { path = "../..", features = ["event_loop"] }
 smol = "0.1.4"
+
+[features]
+default = ["event_loop", "rate_limit"]
+
+event_loop = ["nginee/event_loop"]
+rate_limit = ["nginee/rate_limit"]

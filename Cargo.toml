@@ -16,4 +16,6 @@ members = ["crate/*", "examples/*"]
 
 [features]
 default = ["event_loop"]
+
 event_loop = ["nginee_event_loop"]
+rate_limit = ["nginee_event_loop/rate_limit"]

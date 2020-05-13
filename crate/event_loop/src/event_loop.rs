@@ -1,4 +1,6 @@
 use std::error::Error;
+#[cfg(feature = "rate_limit")]
+use std::time::Duration;
 
 use futures::stream::{self, StreamExt, TryStreamExt};
 
@@ -41,7 +43,14 @@ where
 
     /// Runs the event loop once.
     pub async fn run_once(&mut self) -> Result<EventHandlingOutcome, E> {
-        stream::iter(self.event_handlers.iter_mut())
+        let stream = stream::iter(self.event_handlers.iter_mut());
+
+        #[cfg(feature = "rate_limit")]
+        let stream = stream
+            .zip(async_std::stream::interval(Duration::from_millis(0)))
+            .map(|(item, _)| item);
+
+        stream
             .map(Result::<_, E>::Ok)
             .try_fold(
                 EventHandlingOutcome::Continue,

@@ -9,4 +9,9 @@ doctest = false
 test = false
 
 [dependencies]
+async-std = { version = "1.6.0-beta.1", optional = true }
 futures = { version =  "0.3.5", default-features = false }
+
+[features]
+default = []
+rate_limit = ["async-std/unstable"]
