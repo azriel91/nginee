@@ -8,7 +8,7 @@ pub enum RateLimit {
     /// Maximum number of ticks per second the event handler may run.
     ///
     /// This will be converted to a millisecond interval, so 60 FPS is
-    /// equivalent to 16.667 ms (1000. / 60.);
+    /// equivalent to 16 ms (1000 / 60);
     ///
     /// The [`RateLimit::fps`] function is provided to construct this variant
     /// with error checking.

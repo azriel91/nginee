@@ -43,8 +43,7 @@ mod tests {
     #[test]
     fn event_handlers_are_rate_limited_independently() -> Result<(), SendError<()>> {
         let (tx0, rx0) = channel::unbounded();
-        let event_handler_send_0 =
-            sender(tx0).with_rate_limit(RateLimit::Interval(Duration::from_millis(1)));
+        let event_handler_send_0 = sender(tx0);
 
         let (tx1, rx1) = channel::bounded(10);
         let event_handler_send_1 =
@@ -64,7 +63,6 @@ mod tests {
         let count_1 = rx1.try_iter().collect::<Vec<()>>().len();
 
         assert!(count_0 >= 8);
-        assert!(count_0 <= 10);
         assert!(count_1 >= 4);
         assert!(count_1 <= 6);
 
