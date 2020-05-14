@@ -80,7 +80,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --workspace --exclude-files "examples/*" --run-types Tests --out Xml
+          args: --root crate/workspace_tests --out Xml
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
