@@ -2,7 +2,11 @@ use std::error::Error;
 #[cfg(feature = "rate_limit")]
 use std::time::Duration;
 
-use futures::stream::{self, StreamExt, TryStreamExt};
+#[cfg(feature = "rate_limit")]
+use futures::stream::Stream;
+#[cfg(not(feature = "rate_limit"))]
+use futures::stream::TryStreamExt;
+use futures::stream::{self, StreamExt};
 
 use crate::{EventHandler, EventHandlingOutcome};
 
@@ -31,6 +35,42 @@ where
     }
 
     /// Runs the event loop until `Exit` is signalled or an error occurs.
+    #[cfg(feature = "rate_limit")]
+    pub async fn run(mut self) -> Result<(), E> {
+        let mut interval_streams = self.interval_streams();
+
+        while let Some(index) = interval_streams.next().await {
+            let event_handler = &mut self.event_handlers[index];
+            match event_handler.run().await {
+                Ok(EventHandlingOutcome::Continue) => {}
+                Ok(EventHandlingOutcome::Exit) => return Ok(()),
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(feature = "rate_limit")]
+    fn interval_streams(&mut self) -> impl Stream<Item = usize> {
+        let interval_streams = self
+            .event_handlers
+            .iter()
+            .enumerate()
+            .map(|(index, event_handler)| {
+                let duration = event_handler
+                    .rate_limit
+                    .map(Duration::from)
+                    .unwrap_or_else(|| Duration::from_millis(0));
+                async_std::stream::interval(duration).map(move |_| index)
+            })
+            .collect::<Vec<_>>();
+
+        stream::select_all(interval_streams)
+    }
+
+    /// Runs the event loop until `Exit` is signalled or an error occurs.
+    #[cfg(not(feature = "rate_limit"))]
     pub async fn run(mut self) -> Result<(), E> {
         loop {
             match self.run_once().await {
@@ -41,14 +81,9 @@ where
         }
     }
 
-    /// Runs the event loop once.
-    pub async fn run_once(&mut self) -> Result<EventHandlingOutcome, E> {
+    #[cfg(not(feature = "rate_limit"))]
+    async fn run_once(&mut self) -> Result<EventHandlingOutcome, E> {
         let stream = stream::iter(self.event_handlers.iter_mut());
-
-        #[cfg(feature = "rate_limit")]
-        let stream = stream
-            .zip(async_std::stream::interval(Duration::from_millis(0)))
-            .map(|(item, _)| item);
 
         stream
             .map(Result::<_, E>::Ok)

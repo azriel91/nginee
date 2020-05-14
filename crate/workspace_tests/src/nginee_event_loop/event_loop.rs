@@ -5,21 +5,6 @@ mod tests {
     use nginee::event_loop::{EventHandler, EventHandlingOutcome, EventLoop};
 
     #[test]
-    fn run_once_runs_event_handlers_once() -> Result<(), SendError<()>> {
-        let (tx, rx) = channel::unbounded();
-        let event_handler_send = sender(tx);
-
-        let mut event_loop = EventLoop::new(vec![event_handler_send]);
-
-        smol::run(event_loop.run_once())?;
-
-        let count = rx.try_iter().collect::<Vec<()>>().len();
-        assert_eq!(1, count);
-
-        Ok(())
-    }
-
-    #[test]
     fn run_runs_event_handlers_until_exit_is_signalled() -> Result<(), SendError<()>> {
         let (tx, rx) = channel::unbounded();
         let event_handler_send = sender(tx);
