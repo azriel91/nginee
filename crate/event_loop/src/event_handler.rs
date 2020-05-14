@@ -64,9 +64,14 @@ where
 #[cfg_attr(tarpaulin, skip)]
 impl<E> Debug for EventHandler<E> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("EventHandler")
-            .field("fn_handler_logic", &"..")
-            .finish()
+        let mut debug_struct = f.debug_struct("EventHandler");
+
+        debug_struct.field("fn_handler_logic", &"..");
+
+        #[cfg(feature = "rate_limit")]
+        debug_struct.field("rate_limit", &self.rate_limit);
+
+        debug_struct.finish()
     }
 }
 

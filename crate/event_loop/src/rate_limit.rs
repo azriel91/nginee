@@ -3,7 +3,7 @@ use std::{num::NonZeroU16, time::Duration};
 use crate::Error;
 
 /// Rate limit event handler execution.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RateLimit {
     /// Maximum number of ticks per second the event handler may run.
     ///

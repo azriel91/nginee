@@ -61,7 +61,9 @@ where
                 let duration = event_handler
                     .rate_limit
                     .map(Duration::from)
-                    .unwrap_or_else(|| Duration::from_millis(0));
+                    // TODO: Using `Duration::from_millis(0)` causes this stream to starve all other
+                    // streams from running.
+                    .unwrap_or_else(|| Duration::from_millis(1));
                 async_std::stream::interval(duration).map(move |_| index)
             })
             .collect::<Vec<_>>();
