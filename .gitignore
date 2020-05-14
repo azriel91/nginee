@@ -1,3 +1,4 @@
 /target
 Cargo.lock
+cobertura.xml
 tarpaulin-report.html
