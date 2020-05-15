@@ -1,20 +1,8 @@
 [no_features_coverage]
 no-default-features = true
 
-[features_all_coverage_native]
+[features_all_coverage]
 all-features = true
-
-# We cannot compile `async-std` with the `"unstable"` feature enabled for wasm
-# as the `"unstable"` feature enables `smol`, and `smol` depends on `socket2`
-# which cannot compile on the `wasm32-unknown-unknown` target.
-#
-# See:
-#
-# * <https://github.com/async-rs/async-std/issues/780>
-# * <https://github.com/alexcrichton/socket2-rs/issues/35>.
-# [features_all_coverage_wasm]
-# target = "wasm32-unknown-unknown"
-# all-features = true
 
 [report]
 out = ["Html"]

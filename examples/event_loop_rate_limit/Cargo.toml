@@ -14,5 +14,5 @@ nginee = { path = "../..", features = ["rate_limit"] }
 async-std = "1.6.0-beta.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-nginee = { path = "../..", features = ["rate_limit"] }
+nginee = { path = "../..", features = ["rate_limit", "wasm-bindgen"] }
 wasm-bindgen = "0.2.62"
