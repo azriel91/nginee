@@ -1,6 +1,6 @@
 # Event Loop Rate Limit
 
-Counts down from `1_000_000` as fast as possible, refreshing the screen at 60 FPS.
+Counts down from `1_000_000` as fast as possible, refreshing the screen at 10 FPS.
 
 To compile this example locally, run:
 

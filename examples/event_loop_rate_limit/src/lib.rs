@@ -91,7 +91,7 @@ pub fn run() -> ReturnValue {
     let count = Arc::new(Mutex::new(1_000_000));
     let event_loop = EventLoop::new(vec![
         countdown(count.clone()),
-        renderer(count).with_rate_limit(RateLimit::fps(15).unwrap()),
+        renderer(count).with_rate_limit(RateLimit::fps(10).unwrap()),
     ]);
 
     task::block_on(event_loop.run())

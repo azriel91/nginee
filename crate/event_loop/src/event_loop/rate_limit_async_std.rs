@@ -33,9 +33,9 @@ where
                     let duration = event_handler
                         .rate_limit
                         .map(Duration::from)
-                        // On WASM, we should not have 0 duration streams, as that causes the
-                        // browser to hang.
-                        .unwrap_or_else(|| Duration::from_nanos(50));
+                        // On WASM, without a `sleep` call, the browser will hang.
+                        // Even if we sleep for a 0 duration, the browser will remain responsive.
+                        .unwrap_or_else(|| Duration::from_nanos(0));
 
                     // Note: this does not take into account processing time.
                     stream::unfold(duration, move |duration| async move {

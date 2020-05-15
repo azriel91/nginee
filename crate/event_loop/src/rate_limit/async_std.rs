@@ -47,7 +47,7 @@ impl From<RateLimit> for Duration {
     fn from(rate_limit: RateLimit) -> Duration {
         match rate_limit {
             RateLimit::Fps(fps) => {
-                let nanos = 1_000_000 / u64::from(fps.get());
+                let nanos = 1_000_000_000 / u64::from(fps.get());
                 Duration::from_nanos(nanos)
             }
             RateLimit::Interval(duration) => duration,
