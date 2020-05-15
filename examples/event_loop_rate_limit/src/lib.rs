@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 #[cfg(not(target_arch = "wasm32"))]
 use async_std::io::{self, prelude::WriteExt};
 use async_std::{
@@ -92,9 +90,7 @@ type ReturnValue = ();
 pub fn run() -> ReturnValue {
     let count = Arc::new(Mutex::new(1_000_000));
     let event_loop = EventLoop::new(vec![
-        // WARNING: If you have a non-rate-limited event handler, the browser will freeze when
-        // running single threaded.
-        countdown(count.clone()).with_rate_limit(RateLimit::interval(Duration::from_nanos(1))),
+        countdown(count.clone()),
         renderer(count).with_rate_limit(RateLimit::fps(10).unwrap()),
     ]);
 
