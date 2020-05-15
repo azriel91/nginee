@@ -47,9 +47,9 @@ mod tests {
 
         let (tx1, rx1) = channel::bounded(10);
         let event_handler_send_1 =
-            sender(tx1).with_rate_limit(RateLimit::Interval(Duration::from_millis(2)));
+            sender(tx1).with_rate_limit(RateLimit::interval(Duration::from_millis(2)));
         let event_handler_countdown =
-            countdown(3).with_rate_limit(RateLimit::Interval(Duration::from_millis(3)));
+            countdown(3).with_rate_limit(RateLimit::interval(Duration::from_millis(3)));
 
         let event_loop = EventLoop::new(vec![
             event_handler_countdown,
@@ -63,7 +63,7 @@ mod tests {
         let count_1 = rx1.try_iter().collect::<Vec<()>>().len();
 
         assert!(count_0 >= 8);
-        assert!(count_1 >= 4);
+        assert!(count_1 >= 3); // `governor`'s implementation waits on first invocation
         assert!(count_1 <= 6);
 
         Ok(())

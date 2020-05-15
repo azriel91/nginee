@@ -25,6 +25,7 @@ cfg_rate_limit! {
 
     pub use crate::error::Error;
     pub use crate::rate_limit::RateLimit;
+    pub use governor::Quota;
 }
 
 mod event_handler;

@@ -1,5 +1,7 @@
 use std::{num::NonZeroU32, time::Duration};
 
+use governor::Quota;
+
 use crate::Error;
 
 /// Rate limit event handler execution.
@@ -7,17 +9,14 @@ use crate::Error;
 pub enum RateLimit {
     /// Maximum number of ticks per second the event handler may run.
     ///
-    /// This will be converted to a nanosecond interval, so 60 FPS is
-    /// equivalent to 16 667 ms (1_000_000 / 60);
-    ///
     /// The [`RateLimit::fps`] function is provided to construct this variant
     /// with error checking.
-    Fps(NonZeroU32),
+    Fps(Quota),
     /// Minimum duration between two invocations of the event handler.
     ///
     /// The [`RateLimit::interval`] function is provided to construct this
     /// variant.
-    Interval(Duration),
+    Interval(Option<Quota>),
 }
 
 impl RateLimit {
@@ -30,18 +29,23 @@ impl RateLimit {
     pub fn fps(fps: u32) -> Result<Self, Error> {
         NonZeroU32::new(fps)
             .ok_or(Error::RateLimitFpsZero)
-            .map(RateLimit::Fps)
+            .map(|fps| RateLimit::Fps(Quota::per_second(fps)))
     }
-}
 
-impl From<RateLimit> for Duration {
-    fn from(rate_limit: RateLimit) -> Duration {
-        match rate_limit {
-            RateLimit::Fps(fps) => {
-                let nanos = 1_000_000 / u64::from(fps.get());
-                Duration::from_nanos(nanos)
-            }
-            RateLimit::Interval(duration) => duration,
+    /// Returns a `RateLimit::Interval`.
+    ///
+    /// # Parameters
+    ///
+    /// * `interval`: Duration to wait between invocations of the event handler.
+    pub fn interval(interval: Duration) -> Self {
+        RateLimit::Interval(Quota::with_period(interval))
+    }
+
+    /// Returns the quota, if any.
+    pub fn quota(self) -> Option<Quota> {
+        match self {
+            RateLimit::Fps(quota) => Some(quota),
+            RateLimit::Interval(quota) => quota,
         }
     }
 }
