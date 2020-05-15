@@ -1,11 +1,10 @@
-use std::{error::Error, time::Duration};
+use std::error::Error;
 
 use futures::stream::{self, Stream, StreamExt};
 use governor::{
     clock::DefaultClock,
     prelude::StreamRateLimitExt,
     state::{direct::NotKeyed, InMemoryState},
-    Quota,
 };
 
 use crate::{EventHandlingOutcome, EventLoop};
@@ -39,11 +38,7 @@ where
             .map(|event_handler| {
                 event_handler
                     .rate_limit
-                    .and_then(|rate_limit| {
-                        rate_limit
-                            .quota()
-                            .or_else(|| Quota::with_period(Duration::from_nanos(1)))
-                    })
+                    .and_then(|rate_limit| rate_limit.quota())
                     .map(RateLimiter::direct)
             })
             .collect::<Vec<_>>()

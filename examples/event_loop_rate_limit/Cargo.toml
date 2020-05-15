@@ -14,7 +14,5 @@ nginee = { path = "../..", features = ["rate_limit"] }
 async-std = "1.6.0-beta.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
-nginee = { path = "../..", features = ["rate_limit", "wasm-bindgen"] }
+nginee = { path = "../..", features = ["rate_limit"] }
 wasm-bindgen = "0.2.62"
-parking_lot = { version = "0.10.2", features = ["wasm-bindgen"] }

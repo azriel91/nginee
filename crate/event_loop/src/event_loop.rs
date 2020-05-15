@@ -2,10 +2,12 @@ use std::error::Error;
 
 use crate::EventHandler;
 
+#[cfg(all(target_arch = "wasm32", feature = "rate_limit"))]
+mod rate_limit_async_std;
+#[cfg(all(not(target_arch = "wasm32"), feature = "rate_limit"))]
+mod rate_limit_governor;
 #[cfg(not(feature = "rate_limit"))]
 mod rate_limit_off;
-#[cfg(feature = "rate_limit")]
-mod rate_limit_on;
 
 /// Receives events and runs an event handler function.
 ///

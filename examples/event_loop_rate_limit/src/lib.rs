@@ -88,9 +88,6 @@ type ReturnValue = ();
 /// Runs the application.
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub fn run() -> ReturnValue {
-    #[cfg(target_arch = "wasm32")]
-    console_error_panic_hook::set_once();
-
     let count = Arc::new(Mutex::new(10_000));
     let event_loop = EventLoop::new(vec![
         // WARNING: If you have a non-rate-limited event handler, the browser will freeze when
