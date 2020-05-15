@@ -88,12 +88,10 @@ type ReturnValue = ();
 /// Runs the application.
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub fn run() -> ReturnValue {
-    let count = Arc::new(Mutex::new(10_000));
+    let count = Arc::new(Mutex::new(1_000_000));
     let event_loop = EventLoop::new(vec![
-        // WARNING: If you have a non-rate-limited event handler, the browser will freeze when
-        // running single threaded.
-        countdown(count.clone()).with_rate_limit(RateLimit::fps(200).unwrap()),
-        renderer(count).with_rate_limit(RateLimit::fps(5).unwrap()),
+        countdown(count.clone()),
+        renderer(count).with_rate_limit(RateLimit::fps(15).unwrap()),
     ]);
 
     task::block_on(event_loop.run())

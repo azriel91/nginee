@@ -32,6 +32,15 @@ impl RateLimit {
             .ok_or(Error::RateLimitFpsZero)
             .map(RateLimit::Fps)
     }
+
+    /// Returns a `RateLimit::Interval`.
+    ///
+    /// # Parameters
+    ///
+    /// * `interval`: Duration to wait between invocations of the event handler.
+    pub fn interval(interval: Duration) -> Self {
+        RateLimit::Interval(interval)
+    }
 }
 
 impl From<RateLimit> for Duration {

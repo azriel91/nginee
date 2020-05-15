@@ -25,8 +25,9 @@ cfg_rate_limit! {
 
     pub use crate::error::Error;
     pub use crate::rate_limit::RateLimit;
-    pub use governor::Quota;
 }
+#[cfg(all(not(target_arch = "wasm32"), feature = "rate_limit"))]
+pub use governor::Quota;
 
 mod event_handler;
 mod event_handler_result;

@@ -1,11 +1,8 @@
 use std::{error::Error, time::Duration};
 
 use futures::stream::{self, Stream, StreamExt};
-use futures_test::stream::StreamTestExt;
 
 use crate::{EventHandlingOutcome, EventLoop};
-
-type RateLimiter = governor::RateLimiter<NotKeyed, InMemoryState, DefaultClock>;
 
 impl<E> EventLoop<E>
 where
@@ -36,15 +33,18 @@ where
                     let duration = event_handler
                         .rate_limit
                         .map(Duration::from)
-                        .unwrap_or_else(|| Duration::from_millis(0));
+                        // On WASM, we should not have 0 duration streams, as that causes the
+                        // browser to hang.
+                        .unwrap_or_else(|| Duration::from_nanos(50));
 
-                    async_std::stream::interval(duration).map(move |_| index)
+                    // Note: this does not take into account processing time.
+                    stream::unfold(duration, move |duration| async move {
+                        async_std::task::sleep(duration).await;
+                        Some((index, duration))
+                    })
+                    .boxed()
                 });
 
-        // `interleave_pending` is a hack so that non-rate-limited streams don't starve
-        // rate-limited streams.
-        //
-        // <https://docs.rs/futures-test/0.3.5/futures_test/stream/trait.StreamTestExt.html#method.interleave_pending>
-        stream::select_all(interval_streams).interleave_pending()
+        stream::select_all(interval_streams)
     }
 }
