@@ -63,7 +63,7 @@ mod tests {
         let count_1 = rx1.try_iter().collect::<Vec<()>>().len();
 
         assert!(count_0 >= 8, "count_0: {}", count_0);
-        assert!(count_1 >= 3, "count_1: {}", count_1);
+        assert!(count_1 >= 2, "count_1: {}", count_1);
         assert!(count_1 <= 6, "count_1: {}", count_1);
 
         Ok(())
