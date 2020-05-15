@@ -10,11 +10,14 @@ test = false
 
 [dependencies]
 futures = { version =  "0.3.5", default-features = false }
-governor = { version = "0.2.0", default-features = false, features = ["std"], optional = true }
+governor = { version = "0.2.0", default-features = false, optional = true, features = ["std"] }
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# Requires `cargo build -Z features=itarget`
+#
+# See <https://github.com/rust-lang/cargo/issues/7914>
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # dashmap and quanta both rely on `libc`, which is not available in WASM
-governor = { version = "0.2.0", default-features = false, optional = true, features = ["dashmap", "quanta"] }
+# governor = { version = "0.2.0", default-features = false, optional = true, features = ["dashmap", "quanta"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 governor = { version = "0.2.0", default-features = false, optional = true }
@@ -22,3 +25,10 @@ governor = { version = "0.2.0", default-features = false, optional = true }
 [features]
 default = []
 rate_limit = ["governor"]
+
+# Native builds
+dashmap = ["governor/dashmap"]
+quanta = ["governor/quanta"]
+
+# WASM
+wasm-bindgen = ["governor/wasm-bindgen"]

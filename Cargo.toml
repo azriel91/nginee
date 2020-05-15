@@ -19,3 +19,12 @@ default = ["event_loop"]
 
 event_loop = ["nginee_event_loop"]
 rate_limit = ["nginee_event_loop/rate_limit"]
+wasm-bindgen = ["nginee_event_loop/wasm-bindgen"]
+
+[patch.crates-io]
+# https://github.com/antifuchs/governor/pull/35
+governor = { git = "https://github.com/azriel91/governor.git", rev = "4a34ce9" }
+# https://github.com/sebcrozet/instant/pull/17
+instant = { git = "https://github.com/azriel91/instant.git", branch = "feature/16/checked-add-sub" }
+# https://github.com/Amanieu/parking_lot/pull/231
+parking_lot = { git = "https://github.com/azriel91/parking_lot.git", branch = "feature/use-wasm-compatible-instant" }
