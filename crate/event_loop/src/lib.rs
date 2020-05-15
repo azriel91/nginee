@@ -8,22 +8,32 @@
     missing_docs
 )]
 
-#[cfg(feature = "rate_limit")]
-mod error;
+#[doc(hidden)]
+macro_rules! cfg_rate_limit {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "rate_limit")]
+            #[cfg_attr(feature = "docs", doc(cfg(rate_limit)))]
+            $item
+        )*
+    }
+}
+
+cfg_rate_limit! {
+    mod error;
+    mod rate_limit;
+
+    pub use crate::error::Error;
+    pub use crate::rate_limit::RateLimit;
+    pub use governor::Quota;
+}
+
 mod event_handler;
 mod event_handler_result;
 mod event_handling_outcome;
 mod event_loop;
-#[cfg(feature = "rate_limit")]
-mod rate_limit;
 
-#[cfg(feature = "rate_limit")]
-pub use crate::error::Error;
-#[cfg(feature = "rate_limit")]
-pub use crate::rate_limit::RateLimit;
 pub use crate::{
     event_handler::EventHandler, event_handler_result::EventHandlerResult,
     event_handling_outcome::EventHandlingOutcome, event_loop::EventLoop,
 };
-#[cfg(feature = "rate_limit")]
-pub use governor::Quota;
