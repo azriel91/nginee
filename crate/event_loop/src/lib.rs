@@ -25,3 +25,5 @@ pub use crate::{
     event_handler::EventHandler, event_handler_result::EventHandlerResult,
     event_handling_outcome::EventHandlingOutcome, event_loop::EventLoop,
 };
+#[cfg(feature = "rate_limit")]
+pub use governor::Quota;

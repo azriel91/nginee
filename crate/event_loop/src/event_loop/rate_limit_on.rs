@@ -1,9 +1,16 @@
 use std::{error::Error, time::Duration};
 
 use futures::stream::{self, Stream, StreamExt};
-use futures_test::stream::StreamTestExt;
+use governor::{
+    clock::DefaultClock,
+    prelude::StreamRateLimitExt,
+    state::{direct::NotKeyed, InMemoryState},
+    Quota,
+};
 
 use crate::{EventHandlingOutcome, EventLoop};
+
+type RateLimiter = governor::RateLimiter<NotKeyed, InMemoryState, DefaultClock>;
 
 impl<E> EventLoop<E>
 where
@@ -11,9 +18,10 @@ where
 {
     /// Runs the event loop until `Exit` is signalled or an error occurs.
     pub async fn run(mut self) -> Result<(), E> {
-        let mut interval_streams = self.interval_streams();
+        let rate_limiters = self.rate_limiters();
+        let mut event_handler_streams = self.event_handler_streams(&rate_limiters);
 
-        while let Some(index) = interval_streams.next().await {
+        while let Some(index) = event_handler_streams.next().await {
             let event_handler = &mut self.event_handlers[index];
             match event_handler.run().await {
                 Ok(EventHandlingOutcome::Continue) => {}
@@ -25,24 +33,38 @@ where
         Ok(())
     }
 
-    fn interval_streams(&mut self) -> impl Stream<Item = usize> {
-        let interval_streams =
-            self.event_handlers
-                .iter()
-                .enumerate()
-                .map(|(index, event_handler)| {
-                    let duration = event_handler
-                        .rate_limit
-                        .map(Duration::from)
-                        .unwrap_or_else(|| Duration::from_millis(0));
+    fn rate_limiters(&mut self) -> Vec<Option<RateLimiter>> {
+        self.event_handlers
+            .iter()
+            .map(|event_handler| {
+                event_handler
+                    .rate_limit
+                    .and_then(|rate_limit| {
+                        rate_limit
+                            .quota()
+                            .or_else(|| Quota::with_period(Duration::from_nanos(1)))
+                    })
+                    .map(RateLimiter::direct)
+            })
+            .collect::<Vec<_>>()
+    }
 
-                    async_std::stream::interval(duration).map(move |_| index)
-                });
+    fn event_handler_streams<'r>(
+        &mut self,
+        rate_limiters: &'r [Option<RateLimiter>],
+    ) -> impl Stream<Item = usize> + 'r {
+        let event_handler_streams = rate_limiters
+            .iter()
+            .enumerate()
+            .map(|(index, rate_limiter)| {
+                if let Some(rate_limiter) = rate_limiter {
+                    stream::repeat(index).ratelimit_stream(rate_limiter).boxed()
+                } else {
+                    stream::repeat(index).boxed()
+                }
+            })
+            .collect::<Vec<_>>();
 
-        // `interleave_pending` is a hack so that non-rate-limited streams don't starve
-        // rate-limited streams.
-        //
-        // <https://docs.rs/futures-test/0.3.5/futures_test/stream/trait.StreamTestExt.html#method.interleave_pending>
-        stream::select_all(interval_streams).interleave_pending()
+        stream::select_all(event_handler_streams)
     }
 }

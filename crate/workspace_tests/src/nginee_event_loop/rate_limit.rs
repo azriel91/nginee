@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use std::{num::NonZeroU16, time::Duration};
+    use std::{num::NonZeroU32, time::Duration};
 
-    use nginee::event_loop::{Error, RateLimit};
+    use nginee::event_loop::{Error, Quota, RateLimit};
 
     #[test]
     fn fps_zero_returns_error() {
@@ -12,25 +12,27 @@ mod tests {
     #[test]
     fn fps_non_zero_returns_ok() {
         assert_eq!(
-            Ok(RateLimit::Fps(NonZeroU16::new(1).unwrap())),
+            Ok(RateLimit::Fps(Quota::per_second(
+                NonZeroU32::new(1).unwrap()
+            ))),
             RateLimit::fps(1)
         );
     }
 
     #[test]
-    fn duration_from_60_fps_returns_16_ms() -> Result<(), Error> {
+    fn quota_from_60_fps_returns_quota() -> Result<(), Error> {
         assert_eq!(
-            Duration::from_millis(16), // rounds down
-            Duration::from(RateLimit::fps(60)?)
+            Some(Quota::per_second(NonZeroU32::new(60).unwrap())),
+            RateLimit::fps(60)?.quota()
         );
         Ok(())
     }
 
     #[test]
-    fn duration_from_interval_returns_itself() {
+    fn quota_from_interval_returns_itself() {
         assert_eq!(
-            Duration::from_millis(11),
-            Duration::from(RateLimit::Interval(Duration::from_millis(11)))
+            Quota::with_period(Duration::from_millis(11)),
+            RateLimit::interval(Duration::from_millis(11)).quota()
         );
     }
 }
