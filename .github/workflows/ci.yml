@@ -80,10 +80,12 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --root crate/workspace_tests --out Xml
+          args: --root crate/workspace_tests
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
+        with:
+          file: ./target/tarpaulin/cobertura.xml
 
   build_and_test_linux:
     name: Build and Test (Linux)

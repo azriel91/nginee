@@ -5,5 +5,5 @@ no-default-features = true
 all-features = true
 
 [report]
-out = ["Html"]
+out = ["Html", "Xml"]
 output-dir = "target/tarpaulin"
