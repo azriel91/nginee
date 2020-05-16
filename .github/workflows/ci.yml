@@ -131,17 +131,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: 'Example: `event_loop`'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path examples/event_loop/Cargo.toml
-
-      - name: 'Example: `event_loop_console`'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path examples/event_loop_console/Cargo.toml
+      - name: 'Build examples'
+        run: |
+          for example in $(ls examples)
+          do (cd "examples/${example}"; cargo build)
+          done
 
   build_examples_wasm:
     name: Build examples (WASM)
