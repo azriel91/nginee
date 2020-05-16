@@ -7,11 +7,16 @@ use core::{
 use std::error::Error;
 
 use crate::EventHandlerResult;
+#[cfg(feature = "rate_limit")]
+use crate::RateLimit;
 
 /// Wrapper type for event handler logic.
 pub struct EventHandler<E> {
     /// Event handler logic.
     fn_handler_logic: Box<dyn EventHandlerLogic<E>>,
+    #[cfg(feature = "rate_limit")]
+    /// Rate to limit this event handler's execution.
+    pub rate_limit: Option<RateLimit>,
 }
 
 impl<E> EventHandler<E>
@@ -36,7 +41,18 @@ where
             Box::new(event_handler_logic)
         };
 
-        Self { fn_handler_logic }
+        Self {
+            fn_handler_logic,
+            #[cfg(feature = "rate_limit")]
+            rate_limit: None,
+        }
+    }
+
+    /// Sets the rate limit for this event handler.
+    #[cfg(feature = "rate_limit")]
+    pub fn with_rate_limit(mut self, rate_limit: RateLimit) -> Self {
+        self.rate_limit = Some(rate_limit);
+        self
     }
 
     /// Runs the event handler logic.
@@ -48,9 +64,14 @@ where
 #[cfg_attr(tarpaulin, skip)]
 impl<E> Debug for EventHandler<E> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("EventHandler")
-            .field("fn_handler_logic", &"..")
-            .finish()
+        let mut debug_struct = f.debug_struct("EventHandler");
+
+        debug_struct.field("fn_handler_logic", &"..");
+
+        #[cfg(feature = "rate_limit")]
+        debug_struct.field("rate_limit", &self.rate_limit);
+
+        debug_struct.finish()
     }
 }
 

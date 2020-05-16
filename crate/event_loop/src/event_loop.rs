@@ -1,8 +1,11 @@
 use std::error::Error;
 
-use futures::stream::{self, StreamExt, TryStreamExt};
+use crate::EventHandler;
 
-use crate::{EventHandler, EventHandlingOutcome};
+#[cfg(not(feature = "rate_limit"))]
+mod rate_limit_off;
+#[cfg(feature = "rate_limit")]
+mod rate_limit_on;
 
 /// Receives events and runs an event handler function.
 ///
@@ -26,32 +29,5 @@ where
     /// * `event_handlers`: The logic to run for each event loop execution.
     pub fn new(event_handlers: Vec<EventHandler<E>>) -> Self {
         Self { event_handlers }
-    }
-
-    /// Runs the event loop until `Exit` is signalled or an error occurs.
-    pub async fn run(mut self) -> Result<(), E> {
-        loop {
-            match self.run_once().await {
-                Ok(EventHandlingOutcome::Continue) => {}
-                Ok(EventHandlingOutcome::Exit) => return Ok(()),
-                Err(e) => return Err(e),
-            }
-        }
-    }
-
-    /// Runs the event loop once.
-    pub async fn run_once(&mut self) -> Result<EventHandlingOutcome, E> {
-        stream::iter(self.event_handlers.iter_mut())
-            .map(Result::<_, E>::Ok)
-            .try_fold(
-                EventHandlingOutcome::Continue,
-                |outcome_cumulative, event_handler| async move {
-                    event_handler
-                        .run()
-                        .await
-                        .map(|outcome| core::cmp::max(outcome_cumulative, outcome))
-                },
-            )
-            .await
     }
 }
