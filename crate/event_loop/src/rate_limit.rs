@@ -43,6 +43,7 @@ impl RateLimit {
         // On WASM, if you have a non-rate-limited event handler, the browser will
         // freeze when running single threaded.
         #[cfg(target_arch = "wasm32")]
+        #[cfg_attr(tarpaulin, skip)]
         let quota = {
             if quota.is_none() {
                 Quota::with_period(Duration::from_nanos(1))

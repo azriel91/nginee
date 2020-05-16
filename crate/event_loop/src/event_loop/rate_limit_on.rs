@@ -29,6 +29,7 @@ where
             }
         }
 
+        #[cfg_attr(tarpaulin, skip)]
         Ok(())
     }
 
