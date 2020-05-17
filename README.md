@@ -6,25 +6,7 @@ Experimental `async` game engine designed to be simple, ergonomic and performant
 
 For more information, please see the [vision] and [rationale] documents.
 
-## Development
-
-### Testing
-
-Workspace tests can be run using:
-
-```bash
-cargo test --workspace --tests -- --nocapture --color always
-```
-
-### Code Coverage
-
-1. To check code coverage locally, run:
-
-    ```bash
-    cargo tarpaulin --workspace --exclude-files "examples/*" --run-types Tests --out Html
-    ```
-
-2. Open `tarpaulin-report.html` in the repository root.
+To contribute, please see the [contribution guide].
 
 ## Examples
 
@@ -33,8 +15,7 @@ cargo test --workspace --tests -- --nocapture --color always
 To run an example, run the following commands from the repository root:
 
 ```bash
-example=event_loop
-cargo run --manifest-path "examples/${example}/Cargo.toml"
+cargo run --example event_loop
 ```
 
 ### WASM
@@ -42,19 +23,19 @@ cargo run --manifest-path "examples/${example}/Cargo.toml"
 To build an individual example, run the following commands from the repository root:
 
 ```bash
-example=event_loop # example name
-(cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg")
+wasm-pack build --target web --out-dir "../../doc/src/pkg" examples/event_loop
 ```
 
 To build the all examples for the WASM target, run:
 
 ```bash
 for example in $(ls examples)
-do (cd "examples/${example}"; wasm-pack build --target web --out-dir "../../doc/src/pkg")
+do wasm-pack build --target web --out-dir "../../doc/src/pkg" "examples/${example}"
 done
 ```
 
-To view the example, run `mdbook serve` in the `doc` directory, and navigate to <http://localhost:3000/>.
+To view the example, run `mdbook serve doc`, and navigate to <http://localhost:3000/>.
 
-[vision]: VISION.md
+[contribution guide]: CONTRIBUTING.md
 [rationale]: RATIONALE.md
+[vision]: VISION.md
