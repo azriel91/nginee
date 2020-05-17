@@ -1,9 +1,17 @@
 # Event Loop Console
 
-To compile this example locally, run:
+Counts down from 100, writing to the console on the same line.
+
+To run this example locally, run:
 
 ```bash
-(cd examples/event_loop_console && wasm-pack build --target web --out-dir ../../doc/src/pkg)
+cargo run --example event_loop_console
+```
+
+For WASM:
+
+```bash
+wasm-pack build --target web --out-dir ../../doc/src/pkg examples/event_loop_console
 ```
 
 Terminal:

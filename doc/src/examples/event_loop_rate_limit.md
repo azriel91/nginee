@@ -2,10 +2,16 @@
 
 Counts down from `1_000_000` as fast as possible, refreshing the screen at 10 FPS.
 
-To compile this example locally, run:
+To run this example locally, run:
 
 ```bash
-(cd examples/event_loop_rate_limit && wasm-pack build --target web --out-dir ../../doc/src/pkg)
+cargo run --example event_loop_rate_limit
+```
+
+For WASM:
+
+```bash
+wasm-pack build --target web --out-dir ../../doc/src/pkg examples/event_loop_rate_limit
 ```
 
 Terminal:
