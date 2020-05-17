@@ -22,6 +22,11 @@ rate_limit = ["nginee_event_loop/rate_limit"]
 
 wasm-bindgen = ["nginee_event_loop/wasm-bindgen"]
 
+[dev-dependencies]
+example_event_loop = { path = "examples/event_loop" }
+example_event_loop_console = { path = "examples/event_loop_console" }
+example_event_loop_rate_limit = { path = "examples/event_loop_rate_limit" }
+
 [patch.crates-io]
 # https://github.com/antifuchs/governor/pull/35
 governor = { git = "https://github.com/azriel91/governor.git", rev = "4a34ce9" }
