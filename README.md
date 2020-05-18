@@ -1,6 +1,6 @@
-# nginee
+# ⚙️ [nginee]
 
-![CI](https://github.com/azriel91/nginee/workflows/CI/badge.svg) [![codecov](https://codecov.io/gh/azriel91/nginee/branch/master/graph/badge.svg)](https://codecov.io/gh/azriel91/nginee)
+[![CI](https://github.com/azriel91/nginee/workflows/CI/badge.svg)](https://github.com/azriel91/nginee/actions?query=workflow%3ACI) [![codecov](https://codecov.io/gh/azriel91/nginee/branch/master/graph/badge.svg)](https://codecov.io/gh/azriel91/nginee)
 
 Experimental `async` game engine designed to be simple, ergonomic and performant.
 
@@ -37,5 +37,6 @@ done
 To view the example, run `mdbook serve doc`, and navigate to <http://localhost:3000/>.
 
 [contribution guide]: CONTRIBUTING.md
+[nginee]: https://nginee.rs
 [rationale]: RATIONALE.md
 [vision]: VISION.md
