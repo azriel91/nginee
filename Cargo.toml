@@ -7,6 +7,7 @@ edition = "2018"
 [lib]
 doctest = false
 test = false
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 nginee_event_loop = { version = "0.1.0", path = "crate/event_loop", optional = true }
@@ -29,9 +30,6 @@ example_event_loop_rate_limit = { path = "examples/event_loop_rate_limit" }
 
 [patch.crates-io]
 # https://github.com/antifuchs/governor/pull/35
-governor = { git = "https://github.com/azriel91/governor.git", rev = "4a34ce9" }
-# Needs `instant` release > "0.1.3"
-# https://github.com/sebcrozet/instant/issues/18
-instant = { git = "https://github.com/sebcrozet/instant.git", rev = "ef11b02" }
+governor = { git = "https://github.com/azriel91/governor.git", rev = "43e1b67" }
 # Needs `parking_lot` release > "0.10.2"
 parking_lot = { git = "https://github.com/Amanieu/parking_lot.git", rev = "715d086" }
