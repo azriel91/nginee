@@ -1,8 +1,6 @@
 use std::error::Error;
 
-#[cfg(not(feature = "rate_limit"))]
-use futures::stream::TryStreamExt;
-use futures::stream::{self, StreamExt};
+use futures::stream::{self, StreamExt, TryStreamExt};
 
 use crate::{EventHandlingOutcome, EventLoop};
 

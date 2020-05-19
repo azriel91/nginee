@@ -2,10 +2,8 @@ use std::error::Error;
 
 use crate::EventHandler;
 
-#[cfg(not(feature = "rate_limit"))]
-mod rate_limit_off;
-#[cfg(feature = "rate_limit")]
-mod rate_limit_on;
+#[cfg(not(feature = "winit"))]
+mod headless;
 
 /// Receives events and runs an event handler function.
 ///
