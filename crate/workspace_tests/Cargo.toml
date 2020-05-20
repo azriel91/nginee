@@ -16,3 +16,4 @@ smol = "0.1.4"
 default = ["rate_limit"]
 
 rate_limit = ["nginee/rate_limit"]
+window = ["nginee/window"]

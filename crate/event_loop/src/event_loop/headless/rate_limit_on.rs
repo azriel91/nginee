@@ -1,15 +1,12 @@
 use std::error::Error;
 
 use futures::stream::{self, Stream, StreamExt};
-use governor::{
-    clock::DefaultClock,
-    prelude::StreamRateLimitExt,
-    state::{direct::NotKeyed, InMemoryState},
+use governor::prelude::StreamRateLimitExt;
+
+use crate::{
+    event_loop::common::{EventHandlersExt, RateLimiter},
+    EventHandlingOutcome, EventLoop,
 };
-
-use crate::{EventHandlingOutcome, EventLoop};
-
-type RateLimiter = governor::RateLimiter<NotKeyed, InMemoryState, DefaultClock>;
 
 impl<E> EventLoop<E>
 where
@@ -17,7 +14,7 @@ where
 {
     /// Runs the event loop until `Exit` is signalled or an error occurs.
     pub async fn run(mut self) -> Result<(), E> {
-        let rate_limiters = self.rate_limiters();
+        let rate_limiters = self.event_handlers.rate_limiters();
         let mut event_handler_streams = self.event_handler_streams(&rate_limiters);
 
         while let Some(index) = event_handler_streams.next().await {
@@ -31,29 +28,6 @@ where
 
         #[cfg_attr(tarpaulin, skip)]
         Ok(())
-    }
-
-    fn rate_limiters(&mut self) -> Vec<Option<RateLimiter>> {
-        self.event_handlers
-            .iter()
-            .map(|event_handler| {
-                let quota = event_handler
-                    .rate_limit
-                    .and_then(|rate_limit| rate_limit.quota());
-
-                // On WASM, if you have a non-rate-limited event handler, the browser will
-                // freeze when running single threaded.
-                #[cfg(target_arch = "wasm32")]
-                #[cfg_attr(tarpaulin, skip)]
-                let quota = {
-                    use governor::Quota;
-                    use std::time::Duration;
-                    quota.or_else(|| Quota::with_period(Duration::from_nanos(1)))
-                };
-
-                quota.map(RateLimiter::direct)
-            })
-            .collect::<Vec<_>>()
     }
 
     fn event_handler_streams<'r>(

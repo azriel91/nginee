@@ -20,6 +20,7 @@ default = ["event_loop"]
 
 event_loop = ["nginee_event_loop"]
 rate_limit = ["nginee_event_loop/rate_limit"]
+window = ["nginee_event_loop/window"]
 
 wasm-bindgen = ["nginee_event_loop/wasm-bindgen"]
 
