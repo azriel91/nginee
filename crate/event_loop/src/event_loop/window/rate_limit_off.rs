@@ -14,7 +14,7 @@ where
     UserEvent: 'static,
 {
     /// Runs the event loop until `Exit` is signalled or an error occurs.
-    pub fn run(self) -> ! {
+    pub async fn run(self) -> ! {
         let EventLoop {
             mut event_handlers,
             winit_event_loop,
@@ -22,7 +22,7 @@ where
 
         let mut local_pool = LocalPool::new();
 
-        let (ehr_channel_tx, ehr_channel_rx) = crossbeam_channel::bounded(event_handlers.len());
+        let (ehr_channel_tx, ehr_channel_rx) = crossbeam_channel::unbounded();
 
         winit_event_loop.run(move |_event, _, control_flow| {
             // Run event handlers that are ready.
@@ -47,7 +47,7 @@ where
 
             // Collect the results.
             let event_handling_outcome: Result<EventHandlingOutcome, E> =
-                ehr_channel_rx.iter().try_fold(
+                ehr_channel_rx.try_iter().try_fold(
                     EventHandlingOutcome::Continue,
                     |outcome_cumulative, outcome| Ok(core::cmp::max(outcome_cumulative, outcome?)),
                 );

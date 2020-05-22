@@ -10,7 +10,7 @@ use crate::{
 
 impl<E> EventLoop<E>
 where
-    E: Error,
+    E: Error + Send + 'static,
 {
     /// Runs the event loop until `Exit` is signalled or an error occurs.
     pub async fn run(mut self) -> Result<(), E> {

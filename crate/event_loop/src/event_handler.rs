@@ -6,6 +6,7 @@ use core::{
 };
 use std::error::Error;
 
+#[cfg(feature = "window")]
 use crossbeam_channel::Sender;
 
 use crate::EventHandlerResult;

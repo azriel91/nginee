@@ -37,10 +37,9 @@ where
     winit_event_loop: WinitEventLoop<UserEvent>,
 }
 
-impl<E, UserEvent> EventLoop<E, UserEvent>
+impl<E> EventLoop<E, ()>
 where
     E: Error,
-    UserEvent: 'static,
 {
     /// Returns a new `EventLoop`.
     ///
@@ -56,6 +55,28 @@ where
         }
     }
 
+    /// Returns a new `EventLoop`.
+    ///
+    /// # Parameters
+    ///
+    /// * `event_handlers`: The logic to run for each event loop execution.
+    pub fn new_with_event<UserEvent>(
+        event_handlers: Vec<EventHandler<E>>,
+    ) -> EventLoop<E, UserEvent> {
+        let winit_event_loop = WinitEventLoop::with_user_event();
+
+        EventLoop::<E, UserEvent> {
+            event_handlers,
+            winit_event_loop,
+        }
+    }
+}
+
+impl<E, UserEvent> EventLoop<E, UserEvent>
+where
+    E: Error,
+    UserEvent: 'static,
+{
     /// Returns the `WinitEventLoop`.
     pub fn winit_event_loop(&self) -> &WinitEventLoop<UserEvent> {
         &self.winit_event_loop
