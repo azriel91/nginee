@@ -1,4 +1,4 @@
-use example_event_loop_console::{run, Error};
+use event_loop::{run, Error};
 
 fn main() -> Result<(), Error> {
     run()

@@ -5,7 +5,7 @@ Counts down from `1_000_000` as fast as possible, refreshing the screen at 10 FP
 To run this example locally, run:
 
 ```bash
-cargo run --example event_loop_rate_limit
+cargo run --package event_loop_rate_limit
 ```
 
 For WASM:
@@ -19,7 +19,7 @@ Terminal:
 <div id="terminal" class="language-bash hljs" style="display: block; font-family: monospace;"></div>
 
 <script type="module">
-import init, * as exports from '../pkg/example_event_loop_rate_limit.js';
+import init, * as exports from '../pkg/event_loop_rate_limit.js';
 window.onload = async function() {
     await init();
     exports.run();
