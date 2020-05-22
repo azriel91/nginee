@@ -22,7 +22,7 @@ fn log(s: &str) {
 
 pub fn countdown(mut count: u32) -> EventHandler<Error> {
     EventHandler::<Error>::new(move || {
-        count -= 1;
+        count = count.saturating_sub(1);
         async move {
             log(&format!("{}", count));
 

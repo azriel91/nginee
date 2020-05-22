@@ -6,9 +6,6 @@ use core::{
 };
 use std::error::Error;
 
-#[cfg(feature = "window")]
-use crossbeam_channel::Sender;
-
 use crate::EventHandlerResult;
 #[cfg(feature = "rate_limit")]
 use crate::RateLimit;
@@ -59,23 +56,8 @@ where
     }
 
     /// Runs the event handler logic.
-    #[cfg(not(feature = "window"))]
     pub async fn run(&mut self) -> EventHandlerResult<E> {
         self.fn_handler_logic.handler_task().await
-    }
-
-    /// Returns a future that runs the event handler once and sends the result
-    /// to a channel.
-    ///
-    /// # Parameters
-    ///
-    /// * `tx`: Sender to write the event handler result to.
-    #[cfg(feature = "window")]
-    pub fn handler_task(
-        &mut self,
-        tx: Sender<EventHandlerResult<E>>,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>> {
-        self.fn_handler_logic.handler_task(tx)
     }
 }
 
@@ -94,16 +76,9 @@ impl<E> Debug for EventHandler<E> {
 }
 
 trait EventHandlerLogic<E> {
-    #[cfg(not(feature = "window"))]
     fn handler_task(
         &mut self,
     ) -> Pin<Box<dyn Future<Output = EventHandlerResult<E>> + Send + 'static>>;
-
-    #[cfg(feature = "window")]
-    fn handler_task(
-        &mut self,
-        tx: Sender<EventHandlerResult<E>>,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
 }
 
 struct EventHandlerLogicBasic<FnFut, Fut> {
@@ -117,26 +92,9 @@ where
     Fut: Future<Output = EventHandlerResult<E>> + Send + 'static,
     FnFut: FnMut() -> Fut,
 {
-    #[cfg(not(feature = "window"))]
     fn handler_task(
         &mut self,
     ) -> Pin<Box<dyn Future<Output = EventHandlerResult<E>> + Send + 'static>> {
         Box::pin((self.fn_handler_logic)())
-    }
-
-    #[cfg(feature = "window")]
-    fn handler_task(
-        &mut self,
-        tx: Sender<EventHandlerResult<E>>,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>> {
-        let handler_task = (self.fn_handler_logic)();
-        Box::pin(async move {
-            let event_handler_result = handler_task.await;
-
-            if let Err(e) = tx.try_send(event_handler_result) {
-                // TODO: error handling.
-                panic!("{:?}", e);
-            }
-        })
     }
 }

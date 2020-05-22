@@ -2,11 +2,11 @@ use std::error::Error;
 
 use futures::{
     executor::LocalPool,
-    task::{FutureObj, Spawn},
+    stream::{self, StreamExt, TryStreamExt},
 };
 use winit::event_loop::ControlFlow;
 
-use crate::{EventHandlingOutcome, EventLoop};
+use crate::{EventHandler, EventHandlingOutcome, EventLoop};
 
 impl<E, UserEvent> EventLoop<E, UserEvent>
 where
@@ -22,44 +22,39 @@ where
 
         let mut local_pool = LocalPool::new();
 
-        let (ehr_channel_tx, ehr_channel_rx) = crossbeam_channel::unbounded();
-
         winit_event_loop.run(move |_event, _, control_flow| {
-            // Run event handlers that are ready.
+            // We cannot run event handlers in this closure, as it isn't `async`, but we can
+            // submit them to a local executor to be run on the main thread.
 
-            // We cannot run them in this closure, as it isn't `async`, but we can submit
-            // them to the executor to be run on the main thread.
-
-            let spawner = local_pool.spawner();
-            let spawn_result = event_handlers
-                .iter_mut()
-                .map(|event_handler| event_handler.handler_task(ehr_channel_tx.clone()))
-                .try_for_each(|event_handler_task| {
-                    spawner.spawn_obj(FutureObj::new(event_handler_task))
-                });
-
-            if let Err(_e) = spawn_result {
-                // TODO: error handling
-            }
+            let event_handlers_task = Self::run_once(&mut event_handlers);
 
             // Run the event handlers
-            local_pool.run_until_stalled();
-
-            // Collect the results.
-            let event_handling_outcome: Result<EventHandlingOutcome, E> =
-                ehr_channel_rx.try_iter().try_fold(
-                    EventHandlingOutcome::Continue,
-                    |outcome_cumulative, outcome| Ok(core::cmp::max(outcome_cumulative, outcome?)),
-                );
-
+            let event_handling_outcome = local_pool.run_until(event_handlers_task);
             *control_flow = match event_handling_outcome {
                 Ok(EventHandlingOutcome::Continue) => ControlFlow::Poll,
                 Ok(EventHandlingOutcome::Exit) => ControlFlow::Exit,
                 Err(_e) => {
-                    // TODO: error handling
+                    // TODO: error reporting
                     ControlFlow::Exit
                 }
             };
         });
+    }
+
+    async fn run_once(event_handlers: &mut [EventHandler<E>]) -> Result<EventHandlingOutcome, E> {
+        let stream = stream::iter(event_handlers.iter_mut());
+
+        stream
+            .map(Result::<_, E>::Ok)
+            .try_fold(
+                EventHandlingOutcome::Continue,
+                |outcome_cumulative, event_handler| async move {
+                    event_handler
+                        .run()
+                        .await
+                        .map(|outcome| core::cmp::max(outcome_cumulative, outcome))
+                },
+            )
+            .await
     }
 }
