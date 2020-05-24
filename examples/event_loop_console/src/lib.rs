@@ -58,10 +58,10 @@ pub fn countdown(mut count: u32) -> EventHandler<Error> {
     })
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "window")))]
 type ReturnValue = Result<(), Error>;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", feature = "window"))]
 type ReturnValue = ();
 
 /// Runs the application.
