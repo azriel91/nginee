@@ -1,8 +1,14 @@
-[no_features_coverage]
+[no_features]
 no-default-features = true
 
-[features_all_coverage]
-all-features = true
+[features_headless]
+features = ["rate_limit"]
+
+[features_windowed]
+features = ["window"]
+
+[features_windowed_rate_limit]
+features = ["rate_limit", "window"]
 
 [report]
 out = ["Html", "Xml"]

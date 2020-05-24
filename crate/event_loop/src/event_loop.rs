@@ -6,7 +6,7 @@ pub use self::window::EventLoop;
 
 #[cfg(feature = "rate_limit")]
 mod common;
-#[cfg(not(feature = "winit"))]
+#[cfg(not(feature = "window"))]
 mod headless;
 #[cfg(feature = "window")]
 mod window;

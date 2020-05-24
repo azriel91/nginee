@@ -9,11 +9,11 @@ doctest = false
 
 [dev-dependencies]
 crossbeam = "0.7.3"
-nginee = { path = "../..", features = ["event_loop"] }
+nginee = { path = "../..", default-features = false, features = ["event_loop"] }
 smol = "0.1.4"
 
 [features]
-default = ["rate_limit"]
+default = []
 
 rate_limit = ["nginee/rate_limit"]
 window = ["nginee/window"]
