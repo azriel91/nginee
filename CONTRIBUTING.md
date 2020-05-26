@@ -65,41 +65,28 @@ cargo test --workspace
 Library crates are placed under `crate/<name>`.
 
 * Crate names are prefixed with `nginee_` inside `Cargo.toml`, but not in their directory name.
-* `doctest` and `test` are set to `false`.
+* `doctest` is set to `false`.
 
-    This saves us from running an executable per test and doc snippet, which can take 1 second per crate.
+    This saves us from running an executable per doc snippet, which can take 1 second per crate.
 
     ```toml
     [lib]
     doctest = false
-    test = false
     ```
-
-* Tests are placed inside the `workspace_tests` crate.
-
-    Each crate should have a corresponding module in `workspace_tests` that matches the crate name, and tests are placed in submodules that match the structure of the crate.
-
-    Check out the [Dev Time Optimization] blog post for the rationale.
 
 ### Example Crates
 
 Example crates are placed under `examples/<name>`.
 
-* Crate names are prefixed with `example_` inside `Cargo.toml`, but not in their directory name.
-
-    This clarifies that this is an example crate.
-
 * Crates have their own `Cargo.toml` to track their own dependencies.
 
     This is necessary to not interleave different examples' dependencies when compiling to a WASM binary.
 
-* Crates' source are directly inside the example crate's directory, with a `src` symlink.
+    This means instead of the regular `--example` option, examples must be run using:
 
-    This allows the example to be both a `lib` and `bin` crate, and allows users to run examples using `cargo run --example <non_prefixed_name>`
-
-* The main `nginee` crate must specify the example under `[dev-dependencies]`.
-
-    This allows the example to be both a `lib` and `bin` crate.
+    ```bash
+    cargo run --package $example_name
+    ```
 
 * A book page is written for each example to provide a live demo of the WASM binary.
 
