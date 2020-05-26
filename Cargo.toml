@@ -2,7 +2,13 @@
 name = "nginee"
 version = "0.1.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
+description = "async game engine designed to be simple, ergonomic and performant."
 edition = "2018"
+keywords = ["nginee", "async", "game", "engine"]
+license = "Zlib"
+repository = "https://github.com/azriel91/nginee"
+documentation = "https://docs.rs/nginee"
+categories = ["game-engines"]
 
 [lib]
 doctest = false
