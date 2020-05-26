@@ -21,7 +21,7 @@ pub struct EventHandler<E> {
 
 impl<E> EventHandler<E>
 where
-    E: Error,
+    E: Error + Send + 'static,
 {
     /// Returns a new `EventHandler`.
     ///
@@ -57,7 +57,7 @@ where
 
     /// Runs the event handler logic.
     pub async fn run(&mut self) -> EventHandlerResult<E> {
-        self.fn_handler_logic.run().await
+        self.fn_handler_logic.handler_task().await
     }
 }
 
@@ -76,7 +76,9 @@ impl<E> Debug for EventHandler<E> {
 }
 
 trait EventHandlerLogic<E> {
-    fn run(&mut self) -> Pin<Box<dyn Future<Output = EventHandlerResult<E>> + Send + 'static>>;
+    fn handler_task(
+        &mut self,
+    ) -> Pin<Box<dyn Future<Output = EventHandlerResult<E>> + Send + 'static>>;
 }
 
 struct EventHandlerLogicBasic<FnFut, Fut> {
@@ -86,10 +88,13 @@ struct EventHandlerLogicBasic<FnFut, Fut> {
 
 impl<E, FnFut, Fut> EventHandlerLogic<E> for EventHandlerLogicBasic<FnFut, Fut>
 where
+    E: Send + 'static,
     Fut: Future<Output = EventHandlerResult<E>> + Send + 'static,
     FnFut: FnMut() -> Fut,
 {
-    fn run(&mut self) -> Pin<Box<dyn Future<Output = EventHandlerResult<E>> + Send + 'static>> {
+    fn handler_task(
+        &mut self,
+    ) -> Pin<Box<dyn Future<Output = EventHandlerResult<E>> + Send + 'static>> {
         Box::pin((self.fn_handler_logic)())
     }
 }

@@ -76,11 +76,20 @@ jobs:
           version: latest
           use-tool-cache: true
 
+      - name: Install XVFB
+        run: >-
+          sudo apt install -y
+          xvfb
+          libgl1-mesa-dev
+          libgl1-mesa-glx
+          mesa-utils
+
       - name: 'Run `cargo-tarpaulin`'
-        uses: actions-rs/cargo@v1
-        with:
-          command: tarpaulin
-          args: --root crate/workspace_tests
+        run: >-
+          /usr/bin/xvfb-run
+          --auto-servernum
+          --server-args="-screen 0 1280x1024x24+32 -pixdepths 3 27 32 -ac +extension GLX +render -noreset"
+          cargo tarpaulin
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
@@ -137,10 +146,10 @@ jobs:
           override: true
 
       - name: 'Build examples'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --examples
+        run: |
+          for example in $(ls examples)
+          do cargo build --package "${example}"
+          done
 
   build_examples_wasm:
     name: Build examples (WASM)

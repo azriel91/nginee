@@ -1,17 +1,51 @@
+use std::error::Error;
+
+use crate::EventHandler;
+
+#[cfg(not(feature = "rate_limit"))]
+mod rate_limit_off;
+#[cfg(feature = "rate_limit")]
+mod rate_limit_on;
+
+/// Receives events and runs an event handler function.
+///
+/// # Type Parameters
+///
+/// * `E`: Error type.
+#[derive(Debug)]
+pub struct EventLoop<E> {
+    /// `EventHandler`s to run during event loop execution.
+    event_handlers: Vec<EventHandler<E>>,
+}
+
+impl<E> EventLoop<E>
+where
+    E: Error,
+{
+    /// Returns a new `EventLoop`.
+    ///
+    /// # Parameters
+    ///
+    /// * `event_handlers`: The logic to run for each event loop execution.
+    pub fn new(event_handlers: Vec<EventHandler<E>>) -> Self {
+        Self { event_handlers }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "rate_limit")]
     use std::time::Duration;
 
-    use crossbeam::channel::{self, SendError, Sender};
+    use crossbeam_channel::{SendError, Sender};
 
     #[cfg(feature = "rate_limit")]
-    use nginee::event_loop::RateLimit;
-    use nginee::event_loop::{EventHandler, EventHandlingOutcome, EventLoop};
+    use crate::RateLimit;
+    use crate::{EventHandler, EventHandlingOutcome, EventLoop};
 
     #[test]
     fn run_runs_event_handlers_until_exit_is_signalled() -> Result<(), SendError<()>> {
-        let (tx, rx) = channel::bounded(10);
+        let (tx, rx) = crossbeam_channel::bounded(10);
         let event_handler_send = sender(tx);
         let event_handler_countdown = countdown(3);
 
@@ -27,7 +61,7 @@ mod tests {
 
     #[test]
     fn run_returns_on_first_error() -> Result<(), SendError<()>> {
-        let (tx, _rx) = channel::bounded(10);
+        let (tx, _rx) = crossbeam_channel::bounded(10);
         let event_handler_send = sender(tx);
         let event_handler_countdown = countdown(3);
 
@@ -42,10 +76,10 @@ mod tests {
     #[cfg(feature = "rate_limit")]
     #[test]
     fn event_handlers_are_rate_limited_independently() -> Result<(), SendError<()>> {
-        let (tx0, rx0) = channel::unbounded();
+        let (tx0, rx0) = crossbeam_channel::unbounded();
         let event_handler_send_0 = sender(tx0);
 
-        let (tx1, rx1) = channel::bounded(10);
+        let (tx1, rx1) = crossbeam_channel::bounded(10);
         let event_handler_send_1 =
             sender(tx1).with_rate_limit(RateLimit::interval(Duration::from_millis(2)));
         let event_handler_countdown =

@@ -1,14 +1,12 @@
 use std::error::Error;
 
-#[cfg(not(feature = "rate_limit"))]
-use futures::stream::TryStreamExt;
-use futures::stream::{self, StreamExt};
+use futures::stream::{self, StreamExt, TryStreamExt};
 
 use crate::{EventHandlingOutcome, EventLoop};
 
 impl<E> EventLoop<E>
 where
-    E: Error,
+    E: Error + Send + 'static,
 {
     /// Runs the event loop until `Exit` is signalled or an error occurs.
     pub async fn run(mut self) -> Result<(), E> {

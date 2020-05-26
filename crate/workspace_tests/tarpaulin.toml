@@ -1,9 +1,0 @@
-[no_features_coverage]
-no-default-features = true
-
-[features_all_coverage]
-all-features = true
-
-[report]
-out = ["Html", "Xml"]
-output-dir = "target/tarpaulin"

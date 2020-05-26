@@ -1,11 +1,11 @@
 [package]
-name = "example_event_loop"
+name = "event_loop"
 version = "0.1.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 
 [[bin]]
-name = "example_event_loop"
+name = "event_loop"
 test = false
 
 [lib]
