@@ -37,7 +37,7 @@ nginee                  # Main crate
 Workspace tests can be run using:
 
 ```bash
-cargo test --workspace
+cargo test
 ```
 
 ## Code Coverage

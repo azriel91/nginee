@@ -1,10 +1,4 @@
 [workspace_default]
-workspace = true
-exclude = [
-    "event_loop",
-    "event_loop_console",
-    "event_loop_rate_limit",
-]
 
 [event_loop_rate_limit_on]
 packages = ["nginee_event_loop"]

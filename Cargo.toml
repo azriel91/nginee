@@ -20,6 +20,7 @@ nginee_event_loop = { version = "0.1.0", path = "crate/event_loop", optional = t
 
 [workspace]
 members = ["crate/*", "examples/*"]
+default-members = ["crate/*"]
 
 [features]
 default = ["event_loop"]
