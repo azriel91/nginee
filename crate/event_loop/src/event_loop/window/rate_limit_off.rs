@@ -76,6 +76,7 @@ where
 
     /// Runs the event loop until `Exit` is signalled or an error occurs.
     #[cfg(target_arch = "wasm32")]
+    #[cfg_attr(tarpaulin, skip)]
     pub async fn run(self) {
         let EventLoop {
             event_handlers,

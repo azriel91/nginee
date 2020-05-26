@@ -14,3 +14,16 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+#[cfg(test)]
+mod tests {
+    use crate::Error;
+
+    #[test]
+    fn display_returns_human_readable_message() {
+        assert_eq!(
+            "FPS must be greater than zero.",
+            Error::RateLimitFpsZero.to_string()
+        )
+    }
+}

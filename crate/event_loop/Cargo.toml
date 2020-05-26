@@ -6,7 +6,6 @@ edition = "2018"
 
 [lib]
 doctest = false
-test = false
 
 [dependencies]
 futures = { version =  "0.3.5", default-features = false }
@@ -20,3 +19,7 @@ default = []
 rate_limit = ["governor"]
 wasm-bindgen = ["governor/wasm-bindgen", "parking_lot/wasm-bindgen"]
 window = ["futures/executor", "instant", "winit"]
+
+[dev-dependencies]
+crossbeam-channel = "0.4.2"
+smol = "0.1.4"
