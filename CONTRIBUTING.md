@@ -45,7 +45,7 @@ cargo test --workspace
 1. To check code coverage locally, run:
 
     ```bash
-    cargo tarpaulin --root crate/workspace_tests
+    cargo tarpaulin
     ```
 
 2. Open `target/tarpaulin/tarpaulin-report.html`.
