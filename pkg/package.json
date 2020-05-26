@@ -1,0 +1,15 @@
+{
+  "name": "event_loop_rate_limit",
+  "collaborators": [
+    "Azriel Hoh <azriel91@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "event_loop_rate_limit_bg.wasm",
+    "event_loop_rate_limit.js",
+    "event_loop_rate_limit.d.ts"
+  ],
+  "module": "event_loop_rate_limit.js",
+  "types": "event_loop_rate_limit.d.ts",
+  "sideEffects": false
+}
