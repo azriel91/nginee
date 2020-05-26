@@ -80,7 +80,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --root crate/workspace_tests
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
@@ -137,10 +136,10 @@ jobs:
           override: true
 
       - name: 'Build examples'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --examples
+        run: |
+          for example in $(ls examples)
+          do cargo build --package "${example}"
+          done
 
   build_examples_wasm:
     name: Build examples (WASM)
