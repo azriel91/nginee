@@ -43,8 +43,6 @@ where
     winit_event_loop: WinitEventLoop<UserEvent>,
     /// Task to run on exit.
     exit_handler: Option<ExitHandler<E>>,
-    /// Whether the event loop is run in the main thread.
-    is_in_main_thread: bool,
 }
 
 impl<E, UserEvent> Debug for EventLoop<E, UserEvent>
@@ -63,7 +61,6 @@ where
         } else {
             debug_struct.field("exit_handler", &"None");
         }
-        debug_struct.field("is_in_main_thread", &self.is_in_main_thread);
 
         debug_struct.finish()
     }
@@ -86,7 +83,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler: None,
-            is_in_main_thread: true,
         }
     }
 
@@ -105,7 +101,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler: None,
-            is_in_main_thread: true,
         }
     }
 
@@ -127,7 +122,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler: None,
-            is_in_main_thread: false,
         }
     }
 }

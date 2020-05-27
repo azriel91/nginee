@@ -39,7 +39,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler,
-            is_in_main_thread: _,
         } = self;
 
         let event_loop_params = EventLoopParams {
@@ -66,7 +65,6 @@ where
             mut event_handlers,
             mut winit_event_loop,
             mut exit_handler,
-            is_in_main_thread,
         } = self;
 
         let mut local_pool = LocalPool::new();
@@ -86,10 +84,6 @@ where
             };
 
             winit_event_loop.run_return(Self::fn_event_loop_return(event_loop_params_ref));
-        }
-
-        if is_in_main_thread {
-            std::process::exit(0);
         }
     }
 

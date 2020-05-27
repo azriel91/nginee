@@ -50,7 +50,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler,
-            is_in_main_thread: _,
         } = self;
 
         let rate_limiters = event_handlers.rate_limiters();
@@ -77,7 +76,6 @@ where
             mut event_handlers,
             mut winit_event_loop,
             mut exit_handler,
-            is_in_main_thread,
         } = self;
         let rate_limiters = event_handlers.rate_limiters();
 
@@ -102,10 +100,6 @@ where
                 should_exit,
             };
             winit_event_loop.run_return(Self::fn_event_loop_return(event_loop_params_ref));
-        }
-
-        if is_in_main_thread {
-            std::process::exit(0);
         }
     }
 
