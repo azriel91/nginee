@@ -213,7 +213,7 @@ mod tests {
                         let _ = done_tx.send(e);
                     });
 
-            smol::run(event_loop.run());
+            smol::run(event_loop.run_return());
         });
         let run_result = done_rx.recv();
         assert_eq!(Ok(None), run_result);
@@ -242,7 +242,7 @@ mod tests {
                 let _ = done_tx.send(e);
             });
 
-            smol::run(event_loop.run());
+            smol::run(event_loop.run_return());
         });
 
         let run_result = done_rx.recv();
@@ -274,7 +274,7 @@ mod tests {
             .with_exit_handler(|e| async move {
                 let _ = done_tx.send(e);
             });
-            smol::run(event_loop.run());
+            smol::run(event_loop.run_return());
         });
 
         let _ = done_rx.recv();

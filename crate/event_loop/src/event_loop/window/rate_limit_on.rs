@@ -19,17 +19,6 @@ use crate::{
     EventHandler, EventHandlingOutcome, EventLoop,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
-struct EventLoopParams<'f, E> {
-    event_handlers: &'f mut [EventHandler<E>],
-    exit_handler: &'f mut Option<ExitHandler<E>>,
-    rate_limiters: &'f [Option<RateLimiter>],
-    clock: &'f DefaultClock,
-    local_pool: &'f mut LocalPool,
-    should_exit: &'f mut bool,
-}
-
-#[cfg(target_arch = "wasm32")]
 struct EventLoopParams<'f, E> {
     event_handlers: Vec<EventHandler<E>>,
     exit_handler: Option<ExitHandler<E>>,
@@ -40,14 +29,48 @@ struct EventLoopParams<'f, E> {
     marker: std::marker::PhantomData<&'f E>,
 }
 
+struct EventLoopParamsRef<'f, E> {
+    event_handlers: &'f mut [EventHandler<E>],
+    exit_handler: &'f mut Option<ExitHandler<E>>,
+    rate_limiters: &'f [Option<RateLimiter>],
+    clock: &'f DefaultClock,
+    local_pool: &'f mut LocalPool,
+    should_exit: &'f mut bool,
+}
+
 impl<E, UserEvent> EventLoop<E, UserEvent>
 where
     E: Error + Send + 'static,
     UserEvent: 'static,
 {
     /// Runs the event loop until `Exit` is signalled or an error occurs.
+    #[cfg_attr(tarpaulin, skip)]
+    pub async fn run(self) -> ! {
+        let EventLoop {
+            event_handlers,
+            winit_event_loop,
+            exit_handler,
+            is_in_main_thread: _,
+        } = self;
+
+        let rate_limiters = event_handlers.rate_limiters();
+
+        let event_loop_params = EventLoopParams {
+            event_handlers,
+            exit_handler,
+            rate_limiters,
+            clock: DefaultClock::default(),
+            local_pool: LocalPool::new(),
+            should_exit: false,
+            marker: std::marker::PhantomData,
+        };
+
+        winit_event_loop.run(Self::fn_event_loop(event_loop_params));
+    }
+
+    /// Runs the event loop until `Exit` is signalled or an error occurs.
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn run(self) {
+    pub async fn run_return(self) {
         use winit::platform::desktop::EventLoopExtDesktop;
 
         let EventLoop {
@@ -70,7 +93,7 @@ where
 
         while !should_exit {
             let should_exit = &mut should_exit;
-            let event_loop_params = EventLoopParams {
+            let event_loop_params_ref = EventLoopParamsRef {
                 event_handlers,
                 exit_handler,
                 rate_limiters,
@@ -78,7 +101,7 @@ where
                 local_pool,
                 should_exit,
             };
-            winit_event_loop.run_return(Self::fn_event_loop(event_loop_params));
+            winit_event_loop.run_return(Self::fn_event_loop_return(event_loop_params_ref));
         }
 
         if is_in_main_thread {
@@ -86,42 +109,12 @@ where
         }
     }
 
-    /// Runs the event loop until `Exit` is signalled or an error occurs.
-    #[cfg(target_arch = "wasm32")]
     #[cfg_attr(tarpaulin, skip)]
-    pub async fn run(self) {
-        let EventLoop {
-            event_handlers,
-            winit_event_loop,
-            exit_handler,
-            is_in_main_thread,
-        } = self;
-
-        let rate_limiters = event_handlers.rate_limiters();
-
-        let event_loop_params = EventLoopParams {
-            event_handlers,
-            exit_handler,
-            rate_limiters,
-            clock: DefaultClock::default(),
-            local_pool: LocalPool::new(),
-            should_exit: false,
-            marker: std::marker::PhantomData,
-        };
-
-        winit_event_loop.run(Self::fn_event_loop(event_loop_params));
-    }
-
     fn fn_event_loop<'f>(
         mut event_loop_params: EventLoopParams<'f, E>,
     ) -> impl FnMut(Event<UserEvent>, &EventLoopWindowTarget<UserEvent>, &mut ControlFlow) + 'f
     {
         move |_event, _, control_flow| {
-            // Run event handlers that are ready.
-
-            // We cannot run event handlers in this closure, as it isn't `async`, but we can
-            // submit them to a local executor to be run on the main thread.
-
             let EventLoopParams {
                 ref mut event_handlers,
                 ref mut exit_handler,
@@ -132,45 +125,77 @@ where
                 ..
             } = event_loop_params;
 
-            if !**should_exit {
-                let event_handlers_task =
-                    Self::event_handler_task(event_handlers, rate_limiters, clock);
+            let mut event_loop_params_ref = EventLoopParamsRef {
+                event_handlers,
+                exit_handler,
+                rate_limiters,
+                clock,
+                local_pool,
+                should_exit,
+            };
 
-                // Run the event handlers
-                let outcome = local_pool.run_until(event_handlers_task);
-                let mut error = None;
-                *control_flow = match outcome {
-                    Ok((event_handling_outcome, duration_to_wait)) => {
-                        match event_handling_outcome {
-                            Ok(EventHandlingOutcome::Continue) => {
-                                match duration_to_wait {
-                                    Some(duration) => {
-                                        // Need to do this, because rate limit instant may be a
-                                        // different type, such as `QuantaInstant`.
-                                        let instant = Instant::now() + duration;
-                                        ControlFlow::WaitUntil(instant)
-                                    }
-                                    None => ControlFlow::Poll,
+            Self::run_event_handlers(&mut event_loop_params_ref, control_flow);
+        }
+    }
+
+    fn fn_event_loop_return<'f>(
+        mut event_loop_params_ref: EventLoopParamsRef<'f, E>,
+    ) -> impl FnMut(Event<UserEvent>, &EventLoopWindowTarget<UserEvent>, &mut ControlFlow) + 'f
+    {
+        move |_event, _, control_flow| {
+            Self::run_event_handlers(&mut event_loop_params_ref, control_flow);
+        }
+    }
+
+    fn run_event_handlers<'f>(
+        EventLoopParamsRef {
+            event_handlers,
+            exit_handler,
+            rate_limiters,
+            clock,
+            local_pool,
+            should_exit,
+        }: &mut EventLoopParamsRef<'f, E>,
+        control_flow: &mut ControlFlow,
+    ) {
+        if !**should_exit {
+            let event_handlers_task =
+                Self::event_handler_task(event_handlers, rate_limiters, clock);
+
+            // Run the event handlers
+            let outcome = local_pool.run_until(event_handlers_task);
+            let mut error = None;
+            *control_flow = match outcome {
+                Ok((event_handling_outcome, duration_to_wait)) => {
+                    match event_handling_outcome {
+                        Ok(EventHandlingOutcome::Continue) => {
+                            match duration_to_wait {
+                                Some(duration) => {
+                                    // Need to do this, because rate limit instant may be a
+                                    // different type, such as `QuantaInstant`.
+                                    let instant = Instant::now() + duration;
+                                    ControlFlow::WaitUntil(instant)
                                 }
-                            }
-                            Ok(EventHandlingOutcome::Exit) => ControlFlow::Exit,
-                            Err(e) => {
-                                error = Some(e);
-                                ControlFlow::Exit
+                                None => ControlFlow::Poll,
                             }
                         }
+                        Ok(EventHandlingOutcome::Exit) => ControlFlow::Exit,
+                        Err(e) => {
+                            error = Some(e);
+                            ControlFlow::Exit
+                        }
                     }
-                    Err(e) => {
-                        error = Some(e);
-                        ControlFlow::Exit
-                    }
-                };
+                }
+                Err(e) => {
+                    error = Some(e);
+                    ControlFlow::Exit
+                }
+            };
 
-                if *control_flow == ControlFlow::Exit {
-                    **should_exit = true;
-                    if let Some(exit_handler) = exit_handler.take() {
-                        local_pool.run_until(exit_handler(error));
-                    }
+            if *control_flow == ControlFlow::Exit {
+                **should_exit = true;
+                if let Some(exit_handler) = exit_handler.take() {
+                    local_pool.run_until(exit_handler(error));
                 }
             }
         }
