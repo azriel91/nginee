@@ -9,6 +9,19 @@ pub enum EventHandlingOutcome {
     Exit,
 }
 
+impl EventHandlingOutcome {
+    /// Merges two `EventHandlingOutcome` results.
+    pub fn merge<E>(
+        base: Result<EventHandlingOutcome, E>,
+        patch: Result<EventHandlingOutcome, E>,
+    ) -> Result<EventHandlingOutcome, E> {
+        match (base, patch) {
+            (Err(e), _) | (Ok(_), Err(e)) => Err(e),
+            (Ok(outcome_base), Ok(outcome_patch)) => Ok(std::cmp::max(outcome_base, outcome_patch)),
+        }
+    }
+}
+
 impl PartialOrd for EventHandlingOutcome {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
