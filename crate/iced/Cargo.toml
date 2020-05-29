@@ -1,0 +1,22 @@
+[package]
+name = "nginee_iced"
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+description = "Nginee - Iced integration."
+edition = "2018"
+keywords = ["nginee", "iced"]
+license = "Zlib"
+repository = "https://github.com/azriel91/nginee/crate/iced"
+documentation = "https://docs.rs/nginee_iced"
+categories = ["game-development"]
+
+[lib]
+doctest = false
+
+[dependencies]
+crossbeam-channel = "0.4.2"
+nginee_event_loop = { version = "0.1.0", path = "../event_loop" }
+iced_winit = { path = "/mnt/data/work/github/hecrj/iced/winit" }
+iced_graphics = { path = "/mnt/data/work/github/hecrj/iced/graphics" }
+# iced_winit = "0.1.0"
+# iced_wgpu = "0.2.2"
