@@ -273,7 +273,7 @@ where
     pub fn into_event_handler(
         self,
         event_receiver: Receiver<Event<'static, A::Message>>,
-    ) -> EventHandler<E, Self> {
+    ) -> EventHandler<E> {
         EventHandler::new_with_context(self, move |mut iced_winit| {
             let events = event_receiver.try_iter().collect::<Vec<_>>();
             async move {

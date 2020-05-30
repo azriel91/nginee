@@ -10,21 +10,18 @@ use crate::EventHandlerResult;
 #[cfg(feature = "rate_limit")]
 use crate::RateLimit;
 
-type HandlerTask<'f, Context, E> =
-    Pin<Box<dyn Future<Output = (Context, EventHandlerResult<E>)> + 'f>>;
+type HandlerTask<'f, E> = Pin<Box<dyn Future<Output = EventHandlerResult<E>> + 'f>>;
 
 /// Wrapper type for event handler logic.
-pub struct EventHandler<E, Context = ()> {
+pub struct EventHandler<E> {
     /// Event handler logic.
-    fn_handler_logic: Box<dyn EventHandlerLogic<E, Context>>,
-    /// Context item.
-    context: Option<Context>,
+    fn_handler_logic: Box<dyn EventHandlerLogic<E>>,
     #[cfg(feature = "rate_limit")]
     /// Rate to limit this event handler's execution.
     pub rate_limit: Option<RateLimit>,
 }
 
-impl<E> EventHandler<E, ()>
+impl<E> EventHandler<E>
 where
     E: Error + Send + 'static,
 {
@@ -39,6 +36,7 @@ where
         FnFut: FnMut() -> Fut + 'static,
     {
         let fn_handler_logic = Box::new(FnHandlerWrapper {
+            context: Some(()),
             fn_fut: move |_: ()| {
                 let fut = fn_handler_logic();
                 async move { ((), fut.await) }
@@ -48,14 +46,13 @@ where
 
         Self {
             fn_handler_logic,
-            context: Some(()),
             #[cfg(feature = "rate_limit")]
             rate_limit: None,
         }
     }
 }
 
-impl<E, Context> EventHandler<E, Context>
+impl<E> EventHandler<E>
 where
     E: Error + Send + 'static,
 {
@@ -65,19 +62,20 @@ where
     ///
     /// * `context`: The context item used to construct the event handler logic.
     /// * `handler_logic`: The logic to run.
-    pub fn new_with_context<FnFut, Fut>(context: Context, fn_handler_logic: FnFut) -> Self
+    pub fn new_with_context<Context, FnFut, Fut>(context: Context, fn_handler_logic: FnFut) -> Self
     where
+        Context: 'static,
         Fut: Future<Output = (Context, EventHandlerResult<E>)> + 'static,
         FnFut: FnMut(Context) -> Fut + 'static,
     {
         let fn_handler_logic = Box::new(FnHandlerWrapper {
+            context: Some(context),
             fn_fut: fn_handler_logic,
             marker: PhantomData,
         });
 
         Self {
             fn_handler_logic,
-            context: Some(context),
             #[cfg(feature = "rate_limit")]
             rate_limit: None,
         }
@@ -92,8 +90,39 @@ where
 
     /// Runs the event handler logic.
     pub async fn run(&mut self) -> EventHandlerResult<E> {
+        self.fn_handler_logic.handler_task().await
+    }
+}
+
+#[cfg_attr(tarpaulin, skip)]
+impl<E> Debug for EventHandler<E> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut debug_struct = f.debug_struct("EventHandler");
+
+        debug_struct.field("fn_handler_logic", &"..");
+
+        #[cfg(feature = "rate_limit")]
+        debug_struct.field("rate_limit", &self.rate_limit);
+
+        debug_struct.finish()
+    }
+}
+
+struct FnHandlerWrapper<Context, FnFut, Fut> {
+    context: Option<Context>,
+    fn_fut: FnFut,
+    marker: PhantomData<Fut>,
+}
+
+impl<E, Context, FnFut, Fut> FnHandlerWrapper<Context, FnFut, Fut>
+where
+    E: Send + 'static,
+    Fut: Future<Output = (Context, EventHandlerResult<E>)> + 'static,
+    FnFut: FnMut(Context) -> Fut + 'static,
+{
+    async fn handler_task(&mut self) -> EventHandlerResult<E> {
         if let Some(context) = self.context.take() {
-            let (context, result) = self.fn_handler_logic.handler_task(context).await;
+            let (context, result) = (self.fn_fut)(context).await;
             self.context = Some(context);
 
             result
@@ -103,40 +132,17 @@ where
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
-impl<E, Context> Debug for EventHandler<E, Context>
-where
-    Context: Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut debug_struct = f.debug_struct("EventHandler");
-
-        debug_struct.field("fn_handler_logic", &"..");
-        debug_struct.field("context", &self.context);
-
-        #[cfg(feature = "rate_limit")]
-        debug_struct.field("rate_limit", &self.rate_limit);
-
-        debug_struct.finish()
-    }
+trait EventHandlerLogic<E> {
+    fn handler_task<'f>(&'f mut self) -> HandlerTask<'f, E>;
 }
 
-struct FnHandlerWrapper<FnFut, Fut> {
-    fn_fut: FnFut,
-    marker: PhantomData<Fut>,
-}
-
-trait EventHandlerLogic<E, Context> {
-    fn handler_task<'f>(&mut self, context: Context) -> HandlerTask<'f, Context, E>;
-}
-
-impl<E, Context, FnFut, Fut> EventHandlerLogic<E, Context> for FnHandlerWrapper<FnFut, Fut>
+impl<E, Context, FnFut, Fut> EventHandlerLogic<E> for FnHandlerWrapper<Context, FnFut, Fut>
 where
     E: Send + 'static,
     Fut: Future<Output = (Context, EventHandlerResult<E>)> + 'static,
     FnFut: FnMut(Context) -> Fut + 'static,
 {
-    fn handler_task<'f>(&mut self, context: Context) -> HandlerTask<'f, Context, E> {
-        Box::pin((self.fn_fut)(context))
+    fn handler_task<'f>(&'f mut self) -> HandlerTask<'f, E> {
+        Box::pin(FnHandlerWrapper::handler_task(self))
     }
 }
