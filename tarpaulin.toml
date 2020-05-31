@@ -1,5 +1,8 @@
 [workspace_default]
 
+[event_loop_rate_limit_off]
+packages = ["nginee_event_loop"]
+
 [event_loop_rate_limit_on]
 packages = ["nginee_event_loop"]
 features = "rate_limit"
