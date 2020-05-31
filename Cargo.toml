@@ -17,6 +17,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 nginee_event_loop = { version = "0.1.0", path = "crate/event_loop", optional = true }
+nginee_iced = { version = "0.1.0", path = "crate/iced", optional = true }
 
 [workspace]
 members = ["crate/*", "examples/*"]
@@ -26,6 +27,7 @@ default-members = ["crate/*"]
 default = ["event_loop"]
 
 event_loop = ["nginee_event_loop"]
+iced = ["nginee_iced"]
 rate_limit = ["nginee_event_loop/rate_limit"]
 window = ["nginee_event_loop/window"]
 
