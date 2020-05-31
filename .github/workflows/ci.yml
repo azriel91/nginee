@@ -76,6 +76,15 @@ jobs:
           version: latest
           use-tool-cache: true
 
+        # Needed by `font-kit`
+      - &install_development_packages
+        name: Install Development Packages
+        run: >-
+          sudo apt install -y
+          pkg-config
+          libfreetype6-dev
+          libfontconfig1-dev
+
       - name: Install XVFB
         run: >-
           sudo apt install -y
@@ -107,6 +116,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - *install_development_packages
 
       - uses: actions-rs/cargo@v1
         with:
@@ -144,6 +155,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - *install_development_packages
 
       - name: 'Build examples'
         run: |
