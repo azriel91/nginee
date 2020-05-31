@@ -154,6 +154,26 @@ where
     pub fn winit_event_loop(&self) -> &WinitEventLoop<UserEvent> {
         &self.winit_event_loop
     }
+
+    /// Appends an `EventHandler` to this event loop.
+    ///
+    /// # Parameters
+    ///
+    /// * `event_handler`: The `EventHandler` to run during event loop
+    ///   execution.
+    pub fn with_event_handler(&mut self, event_handler: EventHandler<E>) {
+        self.event_handlers.push(event_handler);
+    }
+
+    /// Appends the `event_handlers` to this event loop.
+    ///
+    /// # Parameters
+    ///
+    /// * `event_handlers`: The `EventHandler`s to run during event loop
+    ///   execution.
+    pub fn with_event_handlers(&mut self, event_handlers: Vec<EventHandler<E>>) {
+        self.event_handlers.extend(event_handlers);
+    }
 }
 
 impl<E, UserEvent> Deref for EventLoop<E, UserEvent>
