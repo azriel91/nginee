@@ -8,6 +8,8 @@
     missing_docs
 )]
 
+pub use crossbeam_channel as channel;
+
 pub use crate::iced_winit::IcedWinit;
 
 mod iced_winit;
