@@ -10,3 +10,5 @@
 
 #[cfg(feature = "event_loop")]
 pub use nginee_event_loop as event_loop;
+#[cfg(feature = "iced")]
+pub use nginee_iced as iced;

@@ -43,9 +43,9 @@ pub fn countdown(mut count: u32) -> EventHandler<Error> {
         count = count.saturating_sub(1);
         async move {
             #[cfg(not(target_arch = "wasm32"))]
-            display(&format!("{}", count)).await?;
+            display(&format!("{count}")).await?;
             #[cfg(target_arch = "wasm32")]
-            display(&format!("{}", count));
+            display(&format!("{count}"));
 
             task::sleep(Duration::from_millis(50)).await;
 

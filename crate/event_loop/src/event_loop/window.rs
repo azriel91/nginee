@@ -43,8 +43,6 @@ where
     winit_event_loop: WinitEventLoop<UserEvent>,
     /// Task to run on exit.
     exit_handler: Option<ExitHandler<E>>,
-    /// Whether the event loop is run in the main thread.
-    is_in_main_thread: bool,
 }
 
 impl<E, UserEvent> Debug for EventLoop<E, UserEvent>
@@ -63,7 +61,6 @@ where
         } else {
             debug_struct.field("exit_handler", &"None");
         }
-        debug_struct.field("is_in_main_thread", &self.is_in_main_thread);
 
         debug_struct.finish()
     }
@@ -86,7 +83,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler: None,
-            is_in_main_thread: true,
         }
     }
 
@@ -105,7 +101,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler: None,
-            is_in_main_thread: true,
         }
     }
 
@@ -127,7 +122,6 @@ where
             event_handlers,
             winit_event_loop,
             exit_handler: None,
-            is_in_main_thread: false,
         }
     }
 }
@@ -159,6 +153,26 @@ where
     #[cfg_attr(tarpaulin, skip)]
     pub fn winit_event_loop(&self) -> &WinitEventLoop<UserEvent> {
         &self.winit_event_loop
+    }
+
+    /// Appends an `EventHandler` to this event loop.
+    ///
+    /// # Parameters
+    ///
+    /// * `event_handler`: The `EventHandler` to run during event loop
+    ///   execution.
+    pub fn with_event_handler(&mut self, event_handler: EventHandler<E>) {
+        self.event_handlers.push(event_handler);
+    }
+
+    /// Appends the `event_handlers` to this event loop.
+    ///
+    /// # Parameters
+    ///
+    /// * `event_handlers`: The `EventHandler`s to run during event loop
+    ///   execution.
+    pub fn with_event_handlers(&mut self, event_handlers: Vec<EventHandler<E>>) {
+        self.event_handlers.extend(event_handlers);
     }
 }
 
@@ -213,7 +227,7 @@ mod tests {
                         let _ = done_tx.send(e);
                     });
 
-            smol::run(event_loop.run());
+            smol::run(event_loop.run_return());
         });
         let run_result = done_rx.recv();
         assert_eq!(Ok(None), run_result);
@@ -242,7 +256,7 @@ mod tests {
                 let _ = done_tx.send(e);
             });
 
-            smol::run(event_loop.run());
+            smol::run(event_loop.run_return());
         });
 
         let run_result = done_rx.recv();
@@ -274,7 +288,7 @@ mod tests {
             .with_exit_handler(|e| async move {
                 let _ = done_tx.send(e);
             });
-            smol::run(event_loop.run());
+            smol::run(event_loop.run_return());
         });
 
         let _ = done_rx.recv();

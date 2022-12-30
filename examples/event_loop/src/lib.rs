@@ -17,14 +17,14 @@ extern "C" {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn log(s: &str) {
-    println!("{}", s);
+    println!("{s}");
 }
 
 pub fn countdown(mut count: u32) -> EventHandler<Error> {
     EventHandler::<Error>::new(move || {
         count = count.saturating_sub(1);
         async move {
-            log(&format!("{}", count));
+            log(&format!("{count}"));
 
             if count > 0 {
                 Ok(EventHandlingOutcome::Continue)
