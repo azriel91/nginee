@@ -133,7 +133,7 @@ where
 }
 
 trait EventHandlerLogic<E> {
-    fn handler_task<'f>(&'f mut self) -> HandlerTask<'f, E>;
+    fn handler_task(&mut self) -> HandlerTask<'_, E>;
 }
 
 impl<E, Context, FnFut, Fut> EventHandlerLogic<E> for FnHandlerWrapper<Context, FnFut, Fut>
@@ -142,7 +142,7 @@ where
     Fut: Future<Output = (Context, EventHandlerResult<E>)> + 'static,
     FnFut: FnMut(Context) -> Fut + 'static,
 {
-    fn handler_task<'f>(&'f mut self) -> HandlerTask<'f, E> {
+    fn handler_task(&mut self) -> HandlerTask<'_, E> {
         Box::pin(FnHandlerWrapper::handler_task(self))
     }
 }

@@ -29,7 +29,7 @@ extern "C" {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn log(s: &str) {
-    println!("{}", s);
+    println!("{s}");
 }
 
 pub fn timeout(timeout: Duration) -> EventHandler<Error> {

@@ -66,9 +66,9 @@ pub fn renderer(count: Arc<Mutex<u32>>) -> EventHandler<Error> {
             };
 
             #[cfg(not(target_arch = "wasm32"))]
-            display(&format!("{}", count)).await?;
+            display(&format!("{count}")).await?;
             #[cfg(target_arch = "wasm32")]
-            display(&format!("{}", count));
+            display(&format!("{count}"));
 
             if count > 0 {
                 Ok(EventHandlingOutcome::Continue)

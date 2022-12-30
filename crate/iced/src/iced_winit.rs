@@ -75,7 +75,7 @@ where
         let window = settings
             .window
             .into_builder(&title, mode, event_loop.primary_monitor())
-            .build(&event_loop)
+            .build(event_loop)
             .expect("Open window");
 
         let clipboard = Clipboard::new(&window);
@@ -202,7 +202,7 @@ where
                     let physical_size = viewport.physical_size();
 
                     *swap_chain = compositor.create_swap_chain(
-                        &surface,
+                        surface,
                         physical_size.width,
                         physical_size.height,
                     );
@@ -213,7 +213,7 @@ where
                 let new_mouse_interaction = compositor.draw(
                     renderer,
                     swap_chain,
-                    &viewport,
+                    viewport,
                     state.primitive(),
                     &debug.overlay(),
                 );
@@ -237,7 +237,7 @@ where
                 let control_flow = &mut control_flow;
                 iced_winit::application::handle_window_event(
                     &window_event,
-                    &window,
+                    window,
                     control_flow,
                     modifiers,
                     viewport,

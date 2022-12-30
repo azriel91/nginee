@@ -1,4 +1,3 @@
-use core::future::Future;
 use std::{error::Error, time::Duration};
 
 use futures::{
@@ -104,9 +103,9 @@ where
     }
 
     #[cfg_attr(tarpaulin, skip)]
-    fn fn_event_loop<'f>(
-        mut event_loop_params: EventLoopParams<'f, E>,
-    ) -> impl FnMut(Event<UserEvent>, &EventLoopWindowTarget<UserEvent>, &mut ControlFlow) + 'f
+    fn fn_event_loop(
+        mut event_loop_params: EventLoopParams<'_, E>,
+    ) -> impl FnMut(Event<UserEvent>, &EventLoopWindowTarget<UserEvent>, &mut ControlFlow) + '_
     {
         move |_event, _, control_flow| {
             let EventLoopParams {
@@ -132,16 +131,16 @@ where
         }
     }
 
-    fn fn_event_loop_return<'f>(
-        mut event_loop_params_ref: EventLoopParamsRef<'f, E>,
-    ) -> impl FnMut(Event<UserEvent>, &EventLoopWindowTarget<UserEvent>, &mut ControlFlow) + 'f
+    fn fn_event_loop_return(
+        mut event_loop_params_ref: EventLoopParamsRef<'_, E>,
+    ) -> impl FnMut(Event<UserEvent>, &EventLoopWindowTarget<UserEvent>, &mut ControlFlow) + '_
     {
         move |_event, _, control_flow| {
             Self::run_event_handlers(&mut event_loop_params_ref, control_flow);
         }
     }
 
-    fn run_event_handlers<'f>(
+    fn run_event_handlers(
         EventLoopParamsRef {
             event_handlers,
             exit_handler,
@@ -149,7 +148,7 @@ where
             clock,
             local_pool,
             should_exit,
-        }: &mut EventLoopParamsRef<'f, E>,
+        }: &mut EventLoopParamsRef<'_, E>,
         control_flow: &mut ControlFlow,
     ) {
         if !**should_exit {
@@ -195,74 +194,68 @@ where
         }
     }
 
-    fn event_handler_task<'f>(
+    async fn event_handler_task<'f>(
         event_handlers: &'f mut [EventHandler<E>],
         rate_limiters: &'f [Option<RateLimiter>],
         clock: &'f DefaultClock,
-    ) -> impl Future<Output = Result<(Result<EventHandlingOutcome, E>, Option<Duration>), E>> + 'f
-    {
-        async move {
-            stream::iter(rate_limiters.iter().zip(event_handlers.iter_mut()))
-                .map(Result::Ok)
-                .try_fold(
-                    (Ok(EventHandlingOutcome::Continue), None),
-                    |(outcome_cumulative, duration_to_wait), (rate_limiter, event_handler)| {
-                        Self::run_event_handler(
-                            clock,
-                            outcome_cumulative,
-                            duration_to_wait,
-                            rate_limiter,
-                            event_handler,
-                        )
-                    },
-                )
-                .await
-        }
+    ) -> Result<(Result<EventHandlingOutcome, E>, Option<Duration>), E> {
+        stream::iter(rate_limiters.iter().zip(event_handlers.iter_mut()))
+            .map(Result::Ok)
+            .try_fold(
+                (Ok(EventHandlingOutcome::Continue), None),
+                |(outcome_cumulative, duration_to_wait), (rate_limiter, event_handler)| {
+                    Self::run_event_handler(
+                        clock,
+                        outcome_cumulative,
+                        duration_to_wait,
+                        rate_limiter,
+                        event_handler,
+                    )
+                },
+            )
+            .await
     }
 
     /// Returns a future that
-    fn run_event_handler<'f>(
+    async fn run_event_handler<'f>(
         clock: &'f DefaultClock,
         mut outcome_cumulative: Result<EventHandlingOutcome, E>,
         mut duration_to_wait: Option<Duration>,
         rate_limiter: &'f Option<RateLimiter>,
         event_handler: &'f mut EventHandler<E>,
-    ) -> impl Future<Output = Result<(Result<EventHandlingOutcome, E>, Option<Duration>), E>> + 'f
-    {
-        async move {
-            if let Some(rate_limiter) = rate_limiter {
-                match rate_limiter.check() {
-                    Ok(()) => {
-                        let outcome = event_handler.run().await;
-                        outcome_cumulative = Self::outcome_merge(outcome_cumulative, outcome);
-                        duration_to_wait = match rate_limiter.check() {
-                            Ok(()) => Some(Duration::from_millis(0)),
-                            Err(not_until) => {
-                                let duration_to_wait_rate_limiter =
-                                    not_until.wait_time_from(clock.now());
-                                duration_to_wait
-                                    .map(|duration| {
-                                        std::cmp::min(duration, duration_to_wait_rate_limiter)
-                                    })
-                                    .or_else(|| Some(duration_to_wait_rate_limiter))
-                            }
-                        };
-                    }
-                    Err(not_until) => {
-                        let duration_to_wait_rate_limiter = not_until.wait_time_from(clock.now());
-                        duration_to_wait = duration_to_wait
-                            .map(|duration| std::cmp::min(duration, duration_to_wait_rate_limiter))
-                            .or_else(|| Some(duration_to_wait_rate_limiter));
-                    }
+    ) -> Result<(Result<EventHandlingOutcome, E>, Option<Duration>), E> {
+        if let Some(rate_limiter) = rate_limiter {
+            match rate_limiter.check() {
+                Ok(()) => {
+                    let outcome = event_handler.run().await;
+                    outcome_cumulative = Self::outcome_merge(outcome_cumulative, outcome);
+                    duration_to_wait = match rate_limiter.check() {
+                        Ok(()) => Some(Duration::from_millis(0)),
+                        Err(not_until) => {
+                            let duration_to_wait_rate_limiter =
+                                not_until.wait_time_from(clock.now());
+                            duration_to_wait
+                                .map(|duration| {
+                                    std::cmp::min(duration, duration_to_wait_rate_limiter)
+                                })
+                                .or(Some(duration_to_wait_rate_limiter))
+                        }
+                    };
                 }
-            } else {
-                let outcome = event_handler.run().await;
-                outcome_cumulative = Self::outcome_merge(outcome_cumulative, outcome);
-                duration_to_wait = Some(Duration::from_millis(0));
+                Err(not_until) => {
+                    let duration_to_wait_rate_limiter = not_until.wait_time_from(clock.now());
+                    duration_to_wait = duration_to_wait
+                        .map(|duration| std::cmp::min(duration, duration_to_wait_rate_limiter))
+                        .or(Some(duration_to_wait_rate_limiter));
+                }
             }
-
-            Result::<_, E>::Ok((outcome_cumulative, duration_to_wait))
+        } else {
+            let outcome = event_handler.run().await;
+            outcome_cumulative = Self::outcome_merge(outcome_cumulative, outcome);
+            duration_to_wait = Some(Duration::from_millis(0));
         }
+
+        Result::<_, E>::Ok((outcome_cumulative, duration_to_wait))
     }
 
     fn outcome_merge(
